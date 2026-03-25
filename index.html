@@ -1,0 +1,2515 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ParcelPulse - Tracking Intelligent pour vos Colis</title>
+  <meta name="description" content="Suivez vos colis en temps réel avec ParcelPulse. Plus de 3200 transporteurs supportés, détection automatique et API gratuite.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            purple: {
+              500: '#7F56D9',
+              600: '#6941C6',
+            },
+            teal: {
+              500: '#14B8A6',
+              600: '#0D9488',
+            },
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    :root {
+      --ease-expo-out: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    * {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0F172A;
+      color: white;
+      overflow-x: hidden;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    
+    /* Glassmorphism */
+    .glass {
+      backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .glass-strong {
+      backdrop-filter: blur(30px);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Gradient Text */
+    .gradient-text {
+      background: linear-gradient(135deg, #7F56D9 0%, #14B8A6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    /* Buttons */
+    .btn-primary {
+      background: linear-gradient(135deg, #7F56D9 0%, #14B8A6 100%);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      transition: all 0.3s var(--ease-expo-out);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .btn-primary:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(127, 86, 217, 0.5);
+    }
+    
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      transition: all 0.3s var(--ease-smooth);
+    }
+    
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Card Hover */
+    .card-hover {
+      transition: all 0.3s var(--ease-expo-out);
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(127, 86, 217, 0.2);
+    }
+    
+    /* Animations */
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.1); }
+    }
+    
+    @keyframes gravitational-float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      25% { transform: translateY(-15px) rotate(2deg); }
+      50% { transform: translateY(-8px) rotate(-1deg); }
+      75% { transform: translateY(-20px) rotate(1deg); }
+    }
+    
+    @keyframes bounce-subtle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    
+    @keyframes marquee {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    
+    .animate-pulse-glow {
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+    
+    .animate-float {
+      animation: gravitational-float 6s ease-in-out infinite;
+    }
+    
+    .animate-float-delay-1 {
+      animation: gravitational-float 6s ease-in-out infinite;
+      animation-delay: -2s;
+    }
+    
+    .animate-float-delay-2 {
+      animation: gravitational-float 6s ease-in-out infinite;
+      animation-delay: -4s;
+    }
+    
+    .animate-bounce-subtle {
+      animation: bounce-subtle 2s ease-in-out infinite;
+    }
+    
+    .animate-marquee {
+      animation: marquee 30s linear infinite;
+    }
+    
+    .pulse-delay-1 {
+      animation-delay: -1s;
+    }
+    
+    .pulse-delay-2 {
+      animation-delay: -2s;
+    }
+    
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(10px);
+    }
+    
+    .modal-content {
+      position: relative;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: linear-gradient(145deg, #1E293B 0%, #0F172A 100%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 1.5rem;
+      padding: 2rem;
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: #0F172A;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: rgba(127, 86, 217, 0.5);
+      border-radius: 4px;
+    }
+    
+    /* Tracking Status Colors */
+    .status-delivered { background: rgba(16, 185, 129, 0.2); color: #34D399; }
+    .status-transit { background: rgba(59, 130, 246, 0.2); color: #60A5FA; }
+    .status-delivery { background: rgba(245, 158, 11, 0.2); color: #FBBF24; }
+    .status-exception { background: rgba(239, 68, 68, 0.2); color: #F87171; }
+    .status-pending { background: rgba(100, 116, 139, 0.2); color: #94A3B8; }
+    
+    /* Timeline */
+    .timeline-line {
+      position: absolute;
+      left: 1.5rem;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, rgba(127, 86, 217, 0.5), rgba(20, 184, 166, 0.5));
+    }
+  </style>
+</head>
+<body class="antialiased">
+  <!-- Navigation -->
+  <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 py-5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between">
+        <!-- Logo -->
+        <a href="#" class="flex items-center gap-3 group" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <i data-lucide="package" class="w-5 h-5 text-white"></i>
+          </div>
+          <span class="text-xl font-bold text-white hidden sm:block">ParcelPulse</span>
+        </a>
+
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center gap-8">
+          <button onclick="scrollToSection('how-it-works')" class="text-slate-300 hover:text-white transition-colors text-sm font-medium relative group">
+            Comment ça marche
+            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-teal-500 group-hover:w-full transition-all duration-300"></span>
+          </button>
+          <button onclick="scrollToSection('features')" class="text-slate-300 hover:text-white transition-colors text-sm font-medium relative group">
+            Fonctionnalités
+            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-teal-500 group-hover:w-full transition-all duration-300"></span>
+          </button>
+          <button onclick="scrollToSection('pricing')" class="text-slate-300 hover:text-white transition-colors text-sm font-medium relative group">
+            Tarifs
+            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-teal-500 group-hover:w-full transition-all duration-300"></span>
+          </button>
+          <button onclick="scrollToSection('faq')" class="text-slate-300 hover:text-white transition-colors text-sm font-medium relative group">
+            FAQ
+            <span class="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-teal-500 group-hover:w-full transition-all duration-300"></span>
+          </button>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="hidden md:flex items-center gap-4">
+          <button class="text-slate-300 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-colors">Connexion</button>
+          <button class="btn-primary">Commencer</button>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-btn" class="md:hidden w-10 h-10 rounded-lg glass flex items-center justify-center text-white">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" class="fixed inset-0 z-40 hidden">
+    <div class="absolute inset-0 bg-slate-900/90 backdrop-blur-xl" onclick="toggleMobileMenu()"></div>
+    <div class="absolute top-20 left-4 right-4 glass-strong rounded-2xl p-6">
+      <div class="space-y-4">
+        <button onclick="scrollToSection('how-it-works'); toggleMobileMenu();" class="block w-full text-left text-white text-lg font-medium py-3 border-b border-white/10">Comment ça marche</button>
+        <button onclick="scrollToSection('features'); toggleMobileMenu();" class="block w-full text-left text-white text-lg font-medium py-3 border-b border-white/10">Fonctionnalités</button>
+        <button onclick="scrollToSection('pricing'); toggleMobileMenu();" class="block w-full text-left text-white text-lg font-medium py-3 border-b border-white/10">Tarifs</button>
+        <button onclick="scrollToSection('faq'); toggleMobileMenu();" class="block w-full text-left text-white text-lg font-medium py-3 border-b border-white/10">FAQ</button>
+      </div>
+      <div class="mt-6 space-y-3">
+        <button class="w-full text-slate-300 hover:text-white hover:bg-white/10 py-3 rounded-lg">Connexion</button>
+        <button class="w-full btn-primary justify-center">Commencer gratuitement</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+    <!-- Animated Background -->
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/30 rounded-full blur-[120px] animate-pulse-glow"></div>
+      <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-600/30 rounded-full blur-[120px] animate-pulse-glow pulse-delay-1"></div>
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[150px] animate-pulse-glow pulse-delay-2"></div>
+      <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 50px 50px;"></div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid lg:grid-cols-2 gap-12 items-center">
+        <!-- Left Content -->
+        <div class="text-center lg:text-left">
+          <!-- Badge -->
+          <div class="hero-badge inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6 opacity-0">
+            <span class="text-lg">🚀</span>
+            <span class="text-sm font-medium text-slate-300">Suivez vos colis dans le monde entier</span>
+          </div>
+
+          <!-- Title -->
+          <h1 class="hero-title text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+            <span class="block opacity-0">Tracking</span>
+            <span class="block gradient-text opacity-0">Intelligent</span>
+            <span class="block opacity-0">pour vos Colis</span>
+          </h1>
+
+          <!-- Description -->
+          <p class="hero-description text-lg text-slate-400 mb-8 max-w-xl mx-auto lg:mx-0 opacity-0">
+            Suivez vos expéditions en temps réel avec notre technologie de pointe. 
+            Plus de 3200 transporteurs supportés, détection automatique et notifications instantanées.
+          </p>
+
+          <!-- Search -->
+          <div class="hero-search opacity-0">
+            <div id="tracking-search-container">
+              <!-- Search Form -->
+              <div class="w-full max-w-2xl mx-auto">
+                <form id="tracking-form" onsubmit="handleTracking(event)" class="relative">
+                  <div id="search-box" class="relative flex items-center gap-3 glass rounded-2xl p-2 pr-3 transition-all duration-300">
+                    <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-teal-500/20 flex items-center justify-center">
+                      <i data-lucide="package" class="w-5 h-5 text-purple-400"></i>
+                    </div>
+                    
+                    <div class="flex-1 relative">
+                      <input
+                        type="text"
+                        id="tracking-input"
+                        placeholder="Entrez votre numéro de tracking..."
+                        class="w-full bg-transparent border-0 text-white placeholder:text-slate-400 focus:outline-none text-lg py-3 h-auto"
+                      />
+                      <button type="button" id="clear-btn" onclick="clearInput()" class="hidden absolute right-0 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/10 transition-colors">
+                        <i data-lucide="x" class="w-4 h-4 text-slate-400"></i>
+                      </button>
+                    </div>
+                    
+                    <button type="submit" id="track-btn" class="btn-primary min-w-[140px] h-12 rounded-xl">
+                      <i data-lucide="search" class="w-4 h-4 mr-2"></i>
+                      Tracker
+                    </button>
+                  </div>
+                </form>
+                
+                <!-- Sample numbers -->
+                <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-sm text-slate-400">
+                  <span>Exemples :</span>
+                  <button onclick="setTrackingNumber('1Z999AA10123456784')" class="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors text-xs">1Z999AA10123456784</button>
+                  <button onclick="setTrackingNumber('9400100000000000000000')" class="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors text-xs">9400100000000000000000</button>
+                  <button onclick="setTrackingNumber('1234567890')" class="px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors text-xs">1234567890</button>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="loading-state" class="hidden w-full max-w-2xl mx-auto">
+              <div class="glass rounded-2xl p-8 text-center">
+                <div class="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mx-auto mb-4"></div>
+                <p class="text-slate-300">Recherche de votre colis...</p>
+              </div>
+            </div>
+            
+            <!-- Results Container -->
+            <div id="tracking-results" class="hidden w-full max-w-4xl mx-auto"></div>
+            
+            <!-- History -->
+            <div id="tracking-history" class="hidden w-full max-w-2xl mx-auto mt-8">
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="text-sm font-medium text-slate-400">Recherches récentes</h4>
+                <span id="history-count" class="text-xs text-slate-500">0 colis</span>
+              </div>
+              <div id="history-list" class="flex flex-wrap gap-2"></div>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-12">
+            <div class="stat-item glass rounded-xl p-4 text-center card-hover opacity-0">
+              <i data-lucide="globe" class="w-6 h-6 text-purple-400 mx-auto mb-2"></i>
+              <div class="text-2xl font-bold text-white">3200+</div>
+              <div class="text-xs text-slate-400">Transporteurs</div>
+            </div>
+            <div class="stat-item glass rounded-xl p-4 text-center card-hover opacity-0">
+              <i data-lucide="package" class="w-6 h-6 text-purple-400 mx-auto mb-2"></i>
+              <div class="text-2xl font-bold text-white">1M+</div>
+              <div class="text-xs text-slate-400">Colis suivis</div>
+            </div>
+            <div class="stat-item glass rounded-xl p-4 text-center card-hover opacity-0">
+              <i data-lucide="zap" class="w-6 h-6 text-purple-400 mx-auto mb-2"></i>
+              <div class="text-2xl font-bold text-white">99.9%</div>
+              <div class="text-xs text-slate-400">Uptime</div>
+            </div>
+            <div class="stat-item glass rounded-xl p-4 text-center card-hover opacity-0">
+              <i data-lucide="shield" class="w-6 h-6 text-purple-400 mx-auto mb-2"></i>
+              <div class="text-2xl font-bold text-white">100%</div>
+              <div class="text-xs text-slate-400">Gratuit</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Content - Floating Cards -->
+        <div class="hidden lg:block relative h-[600px]" style="perspective: 1000px;">
+          <!-- Card 1 -->
+          <div class="floating-card absolute top-10 right-10 w-72 glass-strong rounded-2xl p-5 animate-float opacity-0">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+                <i data-lucide="package" class="w-5 h-5 text-white"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-white">Colis en transit</p>
+                <p class="text-xs text-slate-400">#1Z999AA101234</p>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <div class="flex justify-between text-sm">
+                <span class="text-slate-400">Statut</span>
+                <span class="text-emerald-400 font-medium">En route</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-slate-400">Livraison</span>
+                <span class="text-white">Demain</span>
+              </div>
+            </div>
+            <div class="mt-4 h-2 bg-slate-700 rounded-full overflow-hidden">
+              <div class="h-full w-3/4 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full"></div>
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="floating-card absolute top-1/2 right-0 -translate-y-1/2 w-64 glass-strong rounded-2xl p-5 animate-float-delay-1 opacity-0">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                <i data-lucide="zap" class="w-4 h-4 text-emerald-400"></i>
+              </div>
+              <p class="text-sm font-medium text-white">Mise à jour</p>
+            </div>
+            <p class="text-sm text-slate-400">Votre colis vient d'arriver au centre de tri de Paris</p>
+            <p class="text-xs text-slate-500 mt-2">Il y a 5 minutes</p>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="floating-card absolute bottom-20 right-20 w-56 glass-strong rounded-2xl p-5 animate-float-delay-2 opacity-0">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
+                <i data-lucide="shield" class="w-5 h-5 text-white"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-white">Livré !</p>
+                <p class="text-xs text-slate-400">Colis reçu</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 text-emerald-400 text-sm">
+              <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+              Confirmation client
+            </div>
+          </div>
+
+          <!-- Decorative elements -->
+          <div class="absolute top-1/4 left-1/4 w-4 h-4 bg-purple-500 rounded-full animate-bounce-subtle"></div>
+          <div class="absolute bottom-1/3 left-1/3 w-3 h-3 bg-teal-500 rounded-full animate-bounce-subtle" style="animation-delay: -0.5s;"></div>
+          <div class="absolute top-1/2 left-10 w-2 h-2 bg-blue-500 rounded-full animate-bounce-subtle" style="animation-delay: -1s;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Carrier Carousel -->
+  <section class="relative py-20 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-purple-900/5 to-transparent"></div>
+    
+    <div class="relative z-10">
+      <div class="carousel-title text-center mb-12 px-4 opacity-0">
+        <p class="text-slate-400 text-lg">
+          Plus de <span class="text-white font-semibold">3200+ transporteurs</span> dans le monde entier
+        </p>
+      </div>
+
+      <div class="relative">
+        <div class="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#0F172A] to-transparent z-10 pointer-events-none"></div>
+        <div class="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0F172A] to-transparent z-10 pointer-events-none"></div>
+
+        <div class="flex animate-marquee hover:[animation-play-state:paused]">
+          <!-- Carriers repeated twice for seamless loop -->
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">DHL</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">UPS</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">FedEx</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">USPS</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">La Poste</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">Chronopost</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">Colissimo</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">Amazon</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">TNT</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">DPD</span>
+          </div>
+          <!-- Duplicate for seamless loop -->
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">DHL</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">UPS</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">FedEx</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">USPS</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">La Poste</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">Chronopost</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">Colissimo</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">Amazon</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">TNT</span>
+          </div>
+          <div class="flex-shrink-0 mx-4 px-8 py-4 rounded-xl glass border border-white/10 flex items-center justify-center min-w-[160px] transition-all hover:scale-110 hover:border-white/30 cursor-pointer group">
+            <span class="text-lg font-bold text-slate-500 group-hover:text-white transition-colors" style="filter: grayscale(100%) brightness(1.5);">DPD</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="flex flex-wrap justify-center gap-8 mt-12 px-4">
+        <div class="text-center">
+          <div class="text-2xl font-bold text-white">230+</div>
+          <div class="text-sm text-slate-500">Pays couverts</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold text-white">99.9%</div>
+          <div class="text-sm text-slate-500">Précision</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold text-white">&lt;100ms</div>
+          <div class="text-sm text-slate-500">Temps de réponse</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works" class="relative py-24 overflow-hidden">
+    <div class="absolute inset-0">
+      <div class="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[120px]"></div>
+      <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-600/10 rounded-full blur-[120px]"></div>
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="hiw-title text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 opacity-0">
+          Comment ça <span class="gradient-text">marche</span> ?
+        </h2>
+        <p class="hiw-subtitle text-lg text-slate-400 max-w-2xl mx-auto opacity-0">
+          Suivez vos colis en 3 étapes simples. Notre technologie fait le travail pour vous.
+        </p>
+      </div>
+
+      <div class="relative">
+        <!-- Progress line - Desktop -->
+        <div class="hidden lg:block absolute top-24 left-0 right-0 h-0.5">
+          <div class="h-full bg-gradient-to-r from-purple-500 via-teal-500 to-blue-500 rounded-full progress-line" style="transform: scaleX(0); transform-origin: left;"></div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+          <!-- Step 1 -->
+          <div class="step-card relative group opacity-0">
+            <div class="glass rounded-2xl p-8 h-full card-hover border border-white/10 group-hover:border-purple-500/30 transition-colors">
+              <div class="absolute -top-4 left-8 px-4 py-1 rounded-full bg-gradient-to-r from-purple-500 to-teal-500 text-white text-sm font-bold">
+                Étape 01
+              </div>
+
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mb-6 mt-4 group-hover:scale-110 transition-transform">
+                <i data-lucide="search" class="w-8 h-8 text-white"></i>
+              </div>
+
+              <h3 class="text-xl font-bold text-white mb-3">Entrez votre numéro de tracking</h3>
+              <p class="text-slate-400 leading-relaxed">
+                Saisissez simplement votre numéro de suivi. Notre système détecte automatiquement le transporteur parmi plus de 3200 options.
+              </p>
+
+              <ul class="mt-4 space-y-2">
+                <li class="flex items-center gap-2 text-sm text-slate-500">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-purple-400"></i>
+                  Détection auto du transporteur
+                </li>
+                <li class="flex items-center gap-2 text-sm text-slate-500">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-purple-400"></i>
+                  Support 3200+ transporteurs
+                </li>
+              </ul>
+            </div>
+
+            <div class="hidden lg:flex absolute top-24 -right-4 z-10 w-8 h-8 rounded-full bg-slate-800 border border-white/20 items-center justify-center">
+              <i data-lucide="arrow-right" class="w-4 h-4 text-slate-400"></i>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="step-card relative group opacity-0">
+            <div class="glass rounded-2xl p-8 h-full card-hover border border-white/10 group-hover:border-teal-500/30 transition-colors">
+              <div class="absolute -top-4 left-8 px-4 py-1 rounded-full bg-gradient-to-r from-teal-500 to-teal-600 text-white text-sm font-bold">
+                Étape 02
+              </div>
+
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mb-6 mt-4 group-hover:scale-110 transition-transform">
+                <i data-lucide="globe" class="w-8 h-8 text-white"></i>
+              </div>
+
+              <h3 class="text-xl font-bold text-white mb-3">Nous recherchons votre colis</h3>
+              <p class="text-slate-400 leading-relaxed">
+                Notre API interroge en temps réel les bases de données des transporteurs du monde entier pour obtenir les dernières informations.
+              </p>
+
+              <ul class="mt-4 space-y-2">
+                <li class="flex items-center gap-2 text-sm text-slate-500">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-teal-400"></i>
+                  Mises à jour en temps réel
+                </li>
+                <li class="flex items-center gap-2 text-sm text-slate-500">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-teal-400"></i>
+                  API fiable et rapide
+                </li>
+              </ul>
+            </div>
+
+            <div class="hidden lg:flex absolute top-24 -right-4 z-10 w-8 h-8 rounded-full bg-slate-800 border border-white/20 items-center justify-center">
+              <i data-lucide="arrow-right" class="w-4 h-4 text-slate-400"></i>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="step-card relative group opacity-0">
+            <div class="glass rounded-2xl p-8 h-full card-hover border border-white/10 group-hover:border-blue-500/30 transition-colors">
+              <div class="absolute -top-4 left-8 px-4 py-1 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-bold">
+                Étape 03
+              </div>
+
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-6 mt-4 group-hover:scale-110 transition-transform">
+                <i data-lucide="bell" class="w-8 h-8 text-white"></i>
+              </div>
+
+              <h3 class="text-xl font-bold text-white mb-3">Recevez les mises à jour</h3>
+              <p class="text-slate-400 leading-relaxed">
+                Obtenez des informations détaillées sur l'emplacement, le statut et la date estimée de livraison de votre colis.
+              </p>
+
+              <ul class="mt-4 space-y-2">
+                <li class="flex items-center gap-2 text-sm text-slate-500">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-400"></i>
+                  Notifications push
+                </li>
+                <li class="flex items-center gap-2 text-sm text-slate-500">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-400"></i>
+                  Historique complet
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="text-center mt-16">
+        <p class="text-slate-400 mb-4">Prêt à essayer ? C'est gratuit et sans inscription.</p>
+        <button onclick="scrollToSection('hero')" class="btn-primary">
+          Commencer maintenant
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="relative py-24 overflow-hidden">
+    <div class="absolute inset-0">
+      <div class="absolute top-1/2 left-0 w-96 h-96 bg-purple-600/10 rounded-full blur-[120px] -translate-y-1/2"></div>
+      <div class="absolute top-1/2 right-0 w-96 h-96 bg-teal-600/10 rounded-full blur-[120px] -translate-y-1/2"></div>
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="features-title text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 opacity-0">
+          Fonctionnalités <span class="gradient-text">Puissantes</span>
+        </h2>
+        <p class="features-subtitle text-lg text-slate-400 max-w-2xl mx-auto opacity-0">
+          Tout ce dont vous avez besoin pour suivre vos colis, regroupé dans une seule plateforme.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Feature 1 -->
+        <div class="feature-card group relative opacity-0">
+          <div class="glass rounded-2xl p-8 h-full card-hover border border-white/10 group-hover:border-purple-500/30 transition-all">
+            <div class="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-purple-500/5 to-teal-500/5"></div>
+            
+            <div class="relative w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all">
+              <i data-lucide="scan" class="w-7 h-7 text-white"></i>
+              <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 animate-ping opacity-20"></div>
+            </div>
+
+            <h3 class="relative text-xl font-bold text-white mb-3 group-hover:text-purple-400 transition-colors">Détection Auto</h3>
+            <p class="relative text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">
+              Notre système identifie automatiquement le transporteur à partir du numéro de tracking. Plus besoin de chercher !
+            </p>
+            
+            <div class="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-white/5 rounded-tr-lg group-hover:border-purple-500/30 transition-colors"></div>
+          </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="feature-card group relative opacity-0">
+          <div class="glass rounded-2xl p-8 h-full card-hover border border-white/10 group-hover:border-teal-500/30 transition-all">
+            <div class="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-teal-500/5 to-blue-500/5"></div>
+            
+            <div class="relative w-14 h-14 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all">
+              <i data-lucide="zap" class="w-7 h-7 text-white"></i>
+              <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 animate-ping opacity-20"></div>
+            </div>
+
+            <h3 class="relative text-xl font-bold text-white mb-3 group-hover:text-teal-400 transition-colors">Mises à jour Temps Réel</h3>
+            <p class="relative text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">
+              Recevez des notifications instantanées à chaque changement de statut de votre colis.
+            </p>
+            
+            <div class="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-white/5 rounded-tr-lg group-hover:border-teal-500/30 transition-colors"></div>
+          </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="feature-card group relative opacity-0">
+          <div class="glass rounded-2xl p-8 h-full card-hover border border-white/10 group-hover:border-blue-500/30 transition-all">
+            <div class="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-blue-500/5 to-purple-500/5"></div>
+            
+            <div class="relative w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all">
+              <i data-lucide="globe" class="w-7 h-7 text-white"></i>
+              <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 animate-ping opacity-20"></div>
+            </div>
+
+            <h3 class="relative text-xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">Support Multi-Transporteurs</h3>
+            <p class="relative text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">
+              Plus de 3200 transporteurs supportés dans le monde entier. Un seul outil pour tous vos colis.
+            </p>
+            
+            <div class="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-white/5 rounded-tr-lg group-hover:border-blue-500/30 transition-colors"></div>
+          </div>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="feature-card group relative opacity-0">
+          <div class="glass rounded-2xl p-8 h-full card-hover border border-white/10 group-hover:border-pink-500/30 transition-all">
+            <div class="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-pink-500/5 to-purple-500/5"></div>
+            
+            <div class="relative w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all">
+              <i data-lucide="history" class="w-7 h-7 text-white"></i>
+              <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-pink-500 to-pink-600 animate-ping opacity-20"></div>
+            </div>
+
+            <h3 class="relative text-xl font-bold text-white mb-3 group-hover:text-pink-400 transition-colors">Historique Complet</h3>
+            <p class="relative text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">
+              Consultez l'historique détaillé de tous vos colis. Gardez une trace de toutes vos expéditions.
+            </p>
+            
+            <div class="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-white/5 rounded-tr-lg group-hover:border-pink-500/30 transition-colors"></div>
+          </div>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="feature-card group relative opacity-0">
+          <div class="glass rounded-2xl p-8 h-full card-hover border border-white/10 group-hover:border-orange-500/30 transition-all">
+            <div class="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-orange-500/5 to-pink-500/5"></div>
+            
+            <div class="relative w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all">
+              <i data-lucide="code-2" class="w-7 h-7 text-white"></i>
+              <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 animate-ping opacity-20"></div>
+            </div>
+
+            <h3 class="relative text-xl font-bold text-white mb-3 group-hover:text-orange-400 transition-colors">API Gratuite</h3>
+            <p class="relative text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">
+              Intégrez notre API dans vos applications. 100 requêtes/mois gratuites pour démarrer.
+            </p>
+            
+            <div class="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-white/5 rounded-tr-lg group-hover:border-orange-500/30 transition-colors"></div>
+          </div>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="feature-card group relative opacity-0">
+          <div class="glass rounded-2xl p-8 h-full card-hover border border-white/10 group-hover:border-emerald-500/30 transition-all">
+            <div class="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-emerald-500/5 to-teal-500/5"></div>
+            
+            <div class="relative w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all">
+              <i data-lucide="shield" class="w-7 h-7 text-white"></i>
+              <div class="absolute inset-0 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 animate-ping opacity-20"></div>
+            </div>
+
+            <h3 class="relative text-xl font-bold text-white mb-3 group-hover:text-emerald-400 transition-colors">Sécurisé & Fiable</h3>
+            <p class="relative text-slate-400 leading-relaxed group-hover:text-slate-300 transition-colors">
+              Vos données sont sécurisées avec un chiffrement de niveau entreprise. 99.9% de disponibilité.
+            </p>
+            
+            <div class="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-white/5 rounded-tr-lg group-hover:border-emerald-500/30 transition-colors"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom CTA -->
+      <div class="mt-16 glass rounded-2xl p-8 text-center">
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center">
+              <i data-lucide="bell" class="w-6 h-6 text-white"></i>
+            </div>
+            <div class="text-left">
+              <p class="text-white font-semibold">Notifications en temps réel</p>
+              <p class="text-sm text-slate-400">Soyez alerté à chaque mise à jour</p>
+            </div>
+          </div>
+          
+          <div class="hidden sm:block w-px h-12 bg-white/10"></div>
+          
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500 to-blue-500 flex items-center justify-center">
+              <i data-lucide="bar-chart-3" class="w-6 h-6 text-white"></i>
+            </div>
+            <div class="text-left">
+              <p class="text-white font-semibold">Analytics détaillés</p>
+              <p class="text-sm text-slate-400">Suivez vos performances</p>
+            </div>
+          </div>
+          
+          <div class="hidden sm:block w-px h-12 bg-white/10"></div>
+          
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+              <i data-lucide="smartphone" class="w-6 h-6 text-white"></i>
+            </div>
+            <div class="text-left">
+              <p class="text-white font-semibold">Application mobile</p>
+              <p class="text-sm text-slate-400">Suivez vos colis partout</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Demo -->
+  <section class="relative py-24 overflow-hidden">
+    <div class="absolute inset-0">
+      <div class="absolute top-0 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[120px]"></div>
+      <div class="absolute bottom-0 left-1/4 w-96 h-96 bg-teal-600/10 rounded-full blur-[120px]"></div>
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="demo-title text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 opacity-0">
+          Essayez le <span class="gradient-text">Live Demo</span>
+        </h2>
+        <p class="text-lg text-slate-400 max-w-2xl mx-auto">
+          Voyez comment notre système fonctionne en temps réel
+        </p>
+      </div>
+
+      <div class="demo-container glass rounded-3xl p-8 lg:p-12 border border-white/10 opacity-0">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+          <!-- Left - Demo Interface -->
+          <div class="space-y-6">
+            <!-- Search Input Mock -->
+            <div class="glass rounded-2xl p-4 border border-white/10">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-teal-500/20 flex items-center justify-center">
+                  <i data-lucide="package" class="w-5 h-5 text-purple-400"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="h-10 bg-white/5 rounded-lg flex items-center px-4">
+                    <span class="text-slate-400 font-mono">1Z999AA10123456784</span>
+                  </div>
+                </div>
+                <button onclick="toggleDemo()" class="btn-primary">
+                  <i data-lucide="play" class="w-4 h-4 demo-play"></i>
+                  <i data-lucide="pause" class="w-4 h-4 demo-pause hidden"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Progress Steps -->
+            <div class="space-y-4" id="demo-steps">
+              <div class="demo-step flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-purple-500/20 to-teal-500/20 border border-purple-500/30 transition-all" data-step="0">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center">
+                  <i data-lucide="package" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                  <p class="font-semibold text-white">Entrée du numéro</p>
+                  <p class="text-sm text-slate-400">L'utilisateur saisit son numéro de tracking</p>
+                </div>
+              </div>
+              
+              <div class="demo-step flex items-center gap-4 p-4 rounded-xl opacity-50 transition-all" data-step="1">
+                <div class="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center">
+                  <i data-lucide="refresh-cw" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-500">Détection transporteur</p>
+                  <p class="text-sm text-slate-500">Notre système identifie automatiquement le transporteur</p>
+                </div>
+              </div>
+              
+              <div class="demo-step flex items-center gap-4 p-4 rounded-xl opacity-50 transition-all" data-step="2">
+                <div class="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center">
+                  <i data-lucide="truck" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-500">Recherche en cours</p>
+                  <p class="text-sm text-slate-500">Interrogation des bases de données en temps réel</p>
+                </div>
+              </div>
+              
+              <div class="demo-step flex items-center gap-4 p-4 rounded-xl opacity-50 transition-all" data-step="3">
+                <div class="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center">
+                  <i data-lucide="check-circle-2" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                  <p class="font-semibold text-slate-500">Résultats affichés</p>
+                  <p class="text-sm text-slate-500">Les informations détaillées sont présentées</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center justify-center gap-4">
+              <button onclick="resetDemo()" class="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors text-sm">
+                Réinitialiser
+              </button>
+              <button onclick="toggleDemo()" class="btn-primary demo-btn">
+                Lancer la démo
+              </button>
+            </div>
+          </div>
+
+          <!-- Right - Result Preview -->
+          <div class="relative">
+            <div class="demo-result glass-strong rounded-2xl p-6 border border-white/20 opacity-50 translate-y-4 transition-all duration-500">
+              <!-- Header -->
+              <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                    <i data-lucide="truck" class="w-6 h-6 text-blue-400"></i>
+                  </div>
+                  <div>
+                    <p class="font-semibold text-white">UPS Express</p>
+                    <p class="text-sm text-slate-400">1Z999AA10123456784</p>
+                  </div>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-sm font-medium">En transit</span>
+              </div>
+
+              <!-- Info Grid -->
+              <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="flex items-center gap-3">
+                  <i data-lucide="map-pin" class="w-5 h-5 text-purple-400"></i>
+                  <div>
+                    <p class="text-xs text-slate-400">Origine</p>
+                    <p class="text-sm text-white">Paris, France</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <i data-lucide="map-pin" class="w-5 h-5 text-teal-400"></i>
+                  <div>
+                    <p class="text-xs text-slate-400">Destination</p>
+                    <p class="text-sm text-white">Lyon, France</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <i data-lucide="calendar" class="w-5 h-5 text-blue-400"></i>
+                  <div>
+                    <p class="text-xs text-slate-400">Livraison estimée</p>
+                    <p class="text-sm text-white">Demain</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <i data-lucide="clock" class="w-5 h-5 text-amber-400"></i>
+                  <div>
+                    <p class="text-xs text-slate-400">Dernière mise à jour</p>
+                    <p class="text-sm text-white">Il y a 2h</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Progress Bar -->
+              <div class="mb-4">
+                <div class="flex justify-between text-sm mb-2">
+                  <span class="text-slate-400">Progression</span>
+                  <span class="text-white">65%</span>
+                </div>
+                <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <div class="h-full w-2/3 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full"></div>
+                </div>
+              </div>
+
+              <!-- Latest Event -->
+              <div class="p-4 rounded-xl bg-white/5">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                    <i data-lucide="check-circle-2" class="w-4 h-4 text-purple-400"></i>
+                  </div>
+                  <div>
+                    <p class="text-sm text-white">Colis en transit</p>
+                    <p class="text-xs text-slate-400">Centre de tri - Paris • Il y a 2h</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Decorative elements -->
+            <div class="absolute -top-4 -right-4 w-20 h-20 bg-gradient-to-br from-purple-500/20 to-teal-500/20 rounded-full blur-xl"></div>
+            <div class="absolute -bottom-4 -left-4 w-20 h-20 bg-gradient-to-br from-teal-500/20 to-blue-500/20 rounded-full blur-xl"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="text-center mt-12">
+        <p class="text-slate-400 mb-4">Prêt à tracker votre propre colis ?</p>
+        <button onclick="scrollToSection('hero')" class="btn-primary">
+          Essayer maintenant
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" class="relative py-24 overflow-hidden">
+    <div class="absolute inset-0">
+      <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[120px]"></div>
+      <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-600/10 rounded-full blur-[120px]"></div>
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="pricing-title text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 opacity-0">
+          Choisissez votre <span class="gradient-text">Plan</span>
+        </h2>
+        <p class="pricing-subtitle text-lg text-slate-400 max-w-2xl mx-auto opacity-0">
+          Commencez gratuitement, évoluez selon vos besoins. Aucune carte de crédit requise.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8 items-stretch">
+        <!-- Free Plan -->
+        <div class="pricing-card opacity-0">
+          <div class="h-full glass rounded-2xl p-8 border border-white/10 hover:border-white/30 transition-all">
+            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center mb-6">
+              <i data-lucide="zap" class="w-7 h-7 text-white"></i>
+            </div>
+
+            <h3 class="text-xl font-bold text-white mb-2">Gratuit</h3>
+            <p class="text-slate-400 text-sm mb-4">Parfait pour découvrir notre service</p>
+
+            <div class="mb-6">
+              <span class="text-4xl font-bold text-white">0€</span>
+              <span class="text-slate-400">/mois</span>
+            </div>
+
+            <ul class="space-y-3 mb-8">
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">100 requêtes/mois</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">Support email</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">API basique</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">Historique 30 jours</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">Détection auto transporteur</span>
+              </li>
+            </ul>
+
+            <button class="w-full h-12 rounded-xl font-semibold btn-secondary">
+              Commencer Gratuitement
+            </button>
+          </div>
+        </div>
+
+        <!-- Pro Plan -->
+        <div class="pricing-card md:-mt-4 md:mb-4 opacity-0">
+          <div class="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
+            <div class="px-4 py-1 rounded-full bg-gradient-to-r from-purple-500 to-teal-500 text-white text-sm font-semibold flex items-center gap-1">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              Populaire
+            </div>
+          </div>
+
+          <div class="h-full glass rounded-2xl p-8 border border-purple-500/50 shadow-[0_0_40px_rgba(127,86,217,0.2)] card-hover">
+            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center mb-6">
+              <i data-lucide="sparkles" class="w-7 h-7 text-white"></i>
+            </div>
+
+            <h3 class="text-xl font-bold text-white mb-2">Pro</h3>
+            <p class="text-slate-400 text-sm mb-4">Pour les professionnels et e-commerçants</p>
+
+            <div class="mb-6">
+              <span class="text-4xl font-bold text-white">19€</span>
+              <span class="text-slate-400">/mois</span>
+            </div>
+
+            <ul class="space-y-3 mb-8">
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">10 000 requêtes/mois</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">Support prioritaire</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">Webhooks temps réel</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">Analytics avancés</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">Historique illimité</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">Multi-utilisateurs</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">API complète</span>
+              </li>
+            </ul>
+
+            <button class="w-full h-12 rounded-xl font-semibold btn-primary">
+              Essai Gratuit 14j
+            </button>
+          </div>
+        </div>
+
+        <!-- Enterprise Plan -->
+        <div class="pricing-card opacity-0">
+          <div class="h-full glass rounded-2xl p-8 border border-white/10 hover:border-white/30 transition-all">
+            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-6">
+              <i data-lucide="building-2" class="w-7 h-7 text-white"></i>
+            </div>
+
+            <h3 class="text-xl font-bold text-white mb-2">Enterprise</h3>
+            <p class="text-slate-400 text-sm mb-4">Pour les grandes entreprises</p>
+
+            <div class="mb-6">
+              <span class="text-4xl font-bold text-white">Sur mesure</span>
+            </div>
+
+            <ul class="space-y-3 mb-8">
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">Requêtes illimitées</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">Support dédié 24/7</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">SLA garanti 99.99%</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">Personnalisation complète</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">Architecture sur mesure</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">Formation équipe</span>
+              </li>
+              <li class="flex items-start gap-3">
+                <i data-lucide="check" class="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5"></i>
+                <span class="text-slate-300 text-sm">Account manager</span>
+              </li>
+            </ul>
+
+            <button class="w-full h-12 rounded-xl font-semibold btn-secondary">
+              Contacter l'équipe
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-center mt-12">
+        <p class="text-slate-500 text-sm">
+          Tous les plans incluent le support par email et la documentation complète.<br>
+          Besoin d'aide pour choisir ? <a href="#" class="text-purple-400 hover:text-purple-300 transition-colors">Contactez-nous</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="relative py-24 overflow-hidden">
+    <div class="absolute inset-0">
+      <div class="absolute top-0 left-1/3 w-96 h-96 bg-purple-600/10 rounded-full blur-[120px]"></div>
+      <div class="absolute bottom-0 right-1/3 w-96 h-96 bg-teal-600/10 rounded-full blur-[120px]"></div>
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="testimonials-title text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 opacity-0">
+          Ils nous <span class="gradient-text">font confiance</span>
+        </h2>
+        <p class="testimonials-subtitle text-lg text-slate-400 max-w-2xl mx-auto opacity-0">
+          Découvrez ce que nos utilisateurs disent de nous
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- Column 1 -->
+        <div class="testimonials-column space-y-6 opacity-0">
+          <div class="glass rounded-2xl p-6 border border-white/10 hover:border-purple-500/30 transition-all group card-hover">
+            <i data-lucide="quote" class="w-8 h-8 text-purple-500/20 mb-4"></i>
+            <p class="text-slate-300 mb-6 leading-relaxed">"Excellent service, très précis ! Je peux enfin suivre tous mes colis en un seul endroit. La détection automatique du transporteur est un gain de temps énorme."</p>
+            <div class="flex gap-1 mb-4">
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center text-white font-semibold text-sm group-hover:scale-110 transition-transform">ML</div>
+              <div>
+                <p class="text-white font-semibold">Marie L.</p>
+                <p class="text-sm text-slate-400">E-commerçante</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass rounded-2xl p-6 border border-white/10 hover:border-purple-500/30 transition-all group card-hover">
+            <i data-lucide="quote" class="w-8 h-8 text-purple-500/20 mb-4"></i>
+            <p class="text-slate-300 mb-6 leading-relaxed">"Meilleur tracker de colis que j'ai utilisé. La précision des informations et la rapidité sont impressionnantes. Un outil indispensable pour mon travail."</p>
+            <div class="flex gap-1 mb-4">
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center text-white font-semibold text-sm group-hover:scale-110 transition-transform">JB</div>
+              <div>
+                <p class="text-white font-semibold">Jean B.</p>
+                <p class="text-sm text-slate-400">Logisticien</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 2 -->
+        <div class="testimonials-column space-y-6 opacity-0">
+          <div class="glass rounded-2xl p-6 border border-white/10 hover:border-purple-500/30 transition-all group card-hover">
+            <i data-lucide="quote" class="w-8 h-8 text-purple-500/20 mb-4"></i>
+            <p class="text-slate-300 mb-6 leading-relaxed">"L'API est super bien documentée et facile à intégrer. J'ai pu l'implémenter dans mon application en moins d'une heure. Je recommande à 100% !"</p>
+            <div class="flex gap-1 mb-4">
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center text-white font-semibold text-sm group-hover:scale-110 transition-transform">PD</div>
+              <div>
+                <p class="text-white font-semibold">Pierre D.</p>
+                <p class="text-sm text-slate-400">Développeur</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass rounded-2xl p-6 border border-white/10 hover:border-purple-500/30 transition-all group card-hover">
+            <i data-lucide="quote" class="w-8 h-8 text-purple-500/20 mb-4"></i>
+            <p class="text-slate-300 mb-6 leading-relaxed">"Support client réactif et compétent. J'ai eu un problème d'intégration et ils m'ont aidé à le résoudre en quelques minutes. Bravo !"</p>
+            <div class="flex gap-1 mb-4">
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center text-white font-semibold text-sm group-hover:scale-110 transition-transform">ER</div>
+              <div>
+                <p class="text-white font-semibold">Emma R.</p>
+                <p class="text-sm text-slate-400">Freelance</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 3 -->
+        <div class="testimonials-column space-y-6 opacity-0">
+          <div class="glass rounded-2xl p-6 border border-white/10 hover:border-purple-500/30 transition-all group card-hover">
+            <i data-lucide="quote" class="w-8 h-8 text-purple-500/20 mb-4"></i>
+            <p class="text-slate-300 mb-6 leading-relaxed">"Interface intuitive et rapide. Je mets à jour mes clients en temps réel sur leurs livraisons. Le support client est également très réactif."</p>
+            <div class="flex gap-1 mb-4">
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center text-white font-semibold text-sm group-hover:scale-110 transition-transform">SM</div>
+              <div>
+                <p class="text-white font-semibold">Sophie M.</p>
+                <p class="text-sm text-slate-400">Community Manager</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass rounded-2xl p-6 border border-white/10 hover:border-purple-500/30 transition-all group card-hover">
+            <i data-lucide="quote" class="w-8 h-8 text-purple-500/20 mb-4"></i>
+            <p class="text-slate-300 mb-6 leading-relaxed">"Parfait pour mon e-commerce. L'API gratuite nous a permis de démarrer sans frais, et nous avons upgradé au plan Pro quand nous avons grandi."</p>
+            <div class="flex gap-1 mb-4">
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+              <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center text-white font-semibold text-sm group-hover:scale-110 transition-transform">LT</div>
+              <div>
+                <p class="text-white font-semibold">Lucas T.</p>
+                <p class="text-sm text-slate-400">CEO Startup</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trust indicators -->
+      <div class="mt-16 flex flex-wrap justify-center items-center gap-8">
+        <div class="text-center">
+          <div class="text-3xl font-bold text-white">4.9/5</div>
+          <div class="flex gap-1 justify-center mt-1">
+            <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+            <i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>
+          </div>
+          <div class="text-sm text-slate-500 mt-1">Note moyenne</div>
+        </div>
+        
+        <div class="w-px h-16 bg-white/10 hidden sm:block"></div>
+        
+        <div class="text-center">
+          <div class="text-3xl font-bold text-white">10K+</div>
+          <div class="text-sm text-slate-500 mt-1">Utilisateurs actifs</div>
+        </div>
+        
+        <div class="w-px h-16 bg-white/10 hidden sm:block"></div>
+        
+        <div class="text-center">
+          <div class="text-3xl font-bold text-white">1M+</div>
+          <div class="text-sm text-slate-500 mt-1">Colis suivis</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="relative py-24 overflow-hidden">
+    <div class="absolute inset-0">
+      <div class="absolute top-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[120px]"></div>
+      <div class="absolute bottom-1/4 left-1/4 w-96 h-96 bg-teal-600/10 rounded-full blur-[120px]"></div>
+    </div>
+
+    <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
+          <i data-lucide="help-circle" class="w-4 h-4 text-purple-400"></i>
+          <span class="text-sm text-slate-300">FAQ</span>
+        </div>
+        
+        <h2 class="faq-title text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 opacity-0">
+          Questions <span class="gradient-text">Fréquentes</span>
+        </h2>
+        <p class="faq-subtitle text-lg text-slate-400 max-w-2xl mx-auto opacity-0">
+          Trouvez rapidement vos réponses. Sinon, contactez-nous !
+        </p>
+      </div>
+
+      <div class="space-y-4">
+        <!-- FAQ Item 1 -->
+        <div class="faq-item opacity-0">
+          <div class="glass rounded-xl border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all overflow-hidden">
+            <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left">
+              <span class="font-semibold text-white pr-4">L'API est-elle vraiment gratuite ?</span>
+              <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform flex-shrink-0"></i>
+            </button>
+            <div class="hidden px-6 pb-6">
+              <p class="text-slate-400 leading-relaxed">Oui ! Notre plan gratuit vous offre 100 requêtes par mois, ce qui est suffisant pour la plupart des utilisateurs occasionnels. Si vous avez besoin de plus, vous pouvez passer à notre plan Pro à tout moment.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 2 -->
+        <div class="faq-item opacity-0">
+          <div class="glass rounded-xl border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all overflow-hidden">
+            <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left">
+              <span class="font-semibold text-white pr-4">Quels transporteurs sont supportés ?</span>
+              <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform flex-shrink-0"></i>
+            </button>
+            <div class="hidden px-6 pb-6">
+              <p class="text-slate-400 leading-relaxed">Nous supportons plus de 3200 transporteurs dans le monde entier, incluant DHL, UPS, FedEx, USPS, La Poste, Chronopost, Colissimo, Amazon Logistics, TNT, DPD et bien d'autres. Nous ajoutons régulièrement de nouveaux transporteurs.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 3 -->
+        <div class="faq-item opacity-0">
+          <div class="glass rounded-xl border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all overflow-hidden">
+            <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left">
+              <span class="font-semibold text-white pr-4">Comment fonctionne la détection automatique ?</span>
+              <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform flex-shrink-0"></i>
+            </button>
+            <div class="hidden px-6 pb-6">
+              <p class="text-slate-400 leading-relaxed">Notre système analyse le format de votre numéro de tracking et le compare avec nos patterns de transporteurs. Dans 95% des cas, nous pouvons identifier automatiquement le bon transporteur. Si ce n'est pas possible, vous pouvez le sélectionner manuellement.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 4 -->
+        <div class="faq-item opacity-0">
+          <div class="glass rounded-xl border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all overflow-hidden">
+            <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left">
+              <span class="font-semibold text-white pr-4">Puis-je intégrer l'API dans mon site web ?</span>
+              <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform flex-shrink-0"></i>
+            </button>
+            <div class="hidden px-6 pb-6">
+              <p class="text-slate-400 leading-relaxed">Absolument ! Notre API REST est conçue pour être facilement intégrée dans n'importe quel site web ou application. Nous fournissons une documentation complète et des exemples de code dans plusieurs langages (JavaScript, Python, PHP, etc.).</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 5 -->
+        <div class="faq-item opacity-0">
+          <div class="glass rounded-xl border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all overflow-hidden">
+            <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left">
+              <span class="font-semibold text-white pr-4">Les mises à jour sont-elles en temps réel ?</span>
+              <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform flex-shrink-0"></i>
+            </button>
+            <div class="hidden px-6 pb-6">
+              <p class="text-slate-400 leading-relaxed">Oui, nous interrogeons les APIs des transporteurs en temps réel pour vous fournir les informations les plus récentes. Pour les utilisateurs Pro, nous offrons également des webhooks pour recevoir des notifications instantanées.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ Item 6 -->
+        <div class="faq-item opacity-0">
+          <div class="glass rounded-xl border border-white/10 hover:border-white/20 hover:bg-white/5 transition-all overflow-hidden">
+            <button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-6 text-left">
+              <span class="font-semibold text-white pr-4">Comment contacter le support ?</span>
+              <i data-lucide="chevron-down" class="w-5 h-5 text-slate-400 transition-transform flex-shrink-0"></i>
+            </button>
+            <div class="hidden px-6 pb-6">
+              <p class="text-slate-400 leading-relaxed">Vous pouvez nous contacter par email à support@parcelpulse.com. Les utilisateurs Pro bénéficient d'un support prioritaire avec un temps de réponse garanti sous 4 heures. Les utilisateurs Enterprise ont accès à un support dédié 24/7.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact CTA -->
+      <div class="text-center mt-12">
+        <p class="text-slate-400 mb-4">Vous ne trouvez pas votre réponse ?</p>
+        <a href="mailto:support@parcelpulse.com" class="btn-secondary inline-flex items-center gap-2">
+          Contacter le support
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="relative py-24 overflow-hidden">
+    <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="cta-container relative rounded-3xl overflow-hidden opacity-0">
+        <!-- Animated background -->
+        <div class="absolute inset-0">
+          <div class="absolute inset-0 bg-gradient-to-br from-purple-600/30 via-teal-600/20 to-blue-600/30"></div>
+          <div class="absolute top-0 left-1/4 w-64 h-64 bg-purple-500/30 rounded-full blur-[80px] animate-pulse-glow"></div>
+          <div class="absolute bottom-0 right-1/4 w-64 h-64 bg-teal-500/30 rounded-full blur-[80px] animate-pulse-glow pulse-delay-1"></div>
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-500/20 rounded-full blur-[100px] animate-pulse-glow pulse-delay-2"></div>
+          <div class="absolute inset-0 opacity-[0.05]" style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 30px 30px;"></div>
+        </div>
+
+        <div class="relative z-10 px-8 py-16 md:px-16 md:py-20 text-center">
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8">
+            <i data-lucide="sparkles" class="w-4 h-4 text-purple-400"></i>
+            <span class="text-sm text-slate-300">Commencez gratuitement aujourd'hui</span>
+          </div>
+
+          <h2 class="cta-title text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
+            <span class="block opacity-0">Prêt à</span>
+            <span class="block gradient-text opacity-0">commencer ?</span>
+          </h2>
+
+          <p class="text-lg text-slate-300 mb-10 max-w-2xl mx-auto">
+            Créez votre compte gratuit et commencez à tracker vos colis dès maintenant. Aucune carte de crédit requise.
+          </p>
+
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button onclick="scrollToSection('hero')" class="btn-primary text-lg px-8 py-4">
+              Créer un compte gratuit
+              <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </button>
+            
+            <button class="btn-secondary text-lg px-8 py-4">
+              <i data-lucide="book-open" class="w-5 h-5"></i>
+              Voir la documentation
+            </button>
+          </div>
+
+          <div class="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-slate-400">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              Gratuit
+            </div>
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              Sans engagement
+            </div>
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              Setup en 2 minutes
+            </div>
+          </div>
+        </div>
+
+        <!-- Decorative corners -->
+        <div class="absolute top-4 left-4 w-16 h-16 border-t-2 border-l-2 border-white/10 rounded-tl-2xl"></div>
+        <div class="absolute top-4 right-4 w-16 h-16 border-t-2 border-r-2 border-white/10 rounded-tr-2xl"></div>
+        <div class="absolute bottom-4 left-4 w-16 h-16 border-b-2 border-l-2 border-white/10 rounded-bl-2xl"></div>
+        <div class="absolute bottom-4 right-4 w-16 h-16 border-b-2 border-r-2 border-white/10 rounded-br-2xl"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="relative pt-20 pb-8 overflow-hidden">
+    <!-- Animated top border -->
+    <div class="footer-border absolute top-0 left-0 right-0 h-px" style="transform: scaleX(0); transform-origin: left;">
+      <div class="h-full bg-gradient-to-r from-transparent via-purple-500 to-transparent"></div>
+    </div>
+
+    <div class="absolute inset-0">
+      <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-purple-600/5 rounded-full blur-[120px]"></div>
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12 mb-12">
+        <!-- Brand column -->
+        <div class="footer-column col-span-2 md:col-span-1 opacity-0">
+          <a href="#" class="flex items-center gap-3 mb-4 group" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <i data-lucide="package" class="w-5 h-5 text-white"></i>
+            </div>
+            <span class="text-xl font-bold text-white">ParcelPulse</span>
+          </a>
+          <p class="text-slate-400 text-sm mb-6">
+            Tracking intelligent pour vos colis. Suivez vos expéditions en temps réel avec plus de 3200 transporteurs.
+          </p>
+          
+          <div class="flex items-center gap-3">
+            <a href="#" aria-label="Twitter" class="w-10 h-10 rounded-lg glass flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all hover:-translate-y-1">
+              <i data-lucide="twitter" class="w-5 h-5"></i>
+            </a>
+            <a href="#" aria-label="LinkedIn" class="w-10 h-10 rounded-lg glass flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all hover:-translate-y-1">
+              <i data-lucide="linkedin" class="w-5 h-5"></i>
+            </a>
+            <a href="#" aria-label="GitHub" class="w-10 h-10 rounded-lg glass flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-all hover:-translate-y-1">
+              <i data-lucide="github" class="w-5 h-5"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Product links -->
+        <div class="footer-column opacity-0">
+          <h4 class="text-white font-semibold mb-4">Produit</h4>
+          <ul class="space-y-3">
+            <li><button onclick="scrollToSection('features')" class="text-slate-400 hover:text-purple-400 transition-colors text-sm inline-flex items-center gap-1 group"><span class="group-hover:translate-x-1 transition-transform">Fonctionnalités</span></button></li>
+            <li><button onclick="scrollToSection('pricing')" class="text-slate-400 hover:text-purple-400 transition-colors text-sm inline-flex items-center gap-1 group"><span class="group-hover:translate-x-1 transition-transform">Tarification</span></button></li>
+            <li><a href="#" class="text-slate-400 hover:text-purple-400 transition-colors text-sm inline-flex items-center gap-1 group"><span class="group-hover:translate-x-1 transition-transform">API</span></a></li>
+            <li><a href="#" class="text-slate-400 hover:text-purple-400 transition-colors text-sm inline-flex items-center gap-1 group"><span class="group-hover:translate-x-1 transition-transform">Intégrations</span></a></li>
+          </ul>
+        </div>
+
+        <!-- Resources links -->
+        <div class="footer-column opacity-0">
+          <h4 class="text-white font-semibold mb-4">Ressources</h4>
+          <ul class="space-y-3">
+            <li><a href="#" class="text-slate-400 hover:text-purple-400 transition-colors text-sm inline-flex items-center gap-1 group"><span class="group-hover:translate-x-1 transition-transform">Documentation</span></a></li>
+            <li><a href="#" class="text-slate-400 hover:text-purple-400 transition-colors text-sm inline-flex items-center gap-1 group"><span class="group-hover:translate-x-1 transition-transform">Blog</span></a></li>
+            <li><button onclick="scrollToSection('faq')" class="text-slate-400 hover:text-purple-400 transition-colors text-sm inline-flex items-center gap-1 group"><span class="group-hover:translate-x-1 transition-transform">FAQ</span></button></li>
+            <li><a href="#" class="text-slate-400 hover:text-purple-400 transition-colors text-sm inline-flex items-center gap-1 group"><span class="group-hover:translate-x-1 transition-transform">Support</span></a></li>
+          </ul>
+        </div>
+
+        <!-- Legal links -->
+        <div class="footer-column opacity-0">
+          <h4 class="text-white font-semibold mb-4">Légal</h4>
+          <ul class="space-y-3">
+            <li><button onclick="openModal('cgu-modal')" class="text-slate-400 hover:text-purple-400 transition-colors text-sm inline-flex items-center gap-1 group"><span class="group-hover:translate-x-1 transition-transform">CGU</span></button></li>
+            <li><button onclick="openModal('privacy-modal')" class="text-slate-400 hover:text-purple-400 transition-colors text-sm inline-flex items-center gap-1 group"><span class="group-hover:translate-x-1 transition-transform">Confidentialité</span></button></li>
+            <li><button onclick="openModal('cookies-modal')" class="text-slate-400 hover:text-purple-400 transition-colors text-sm inline-flex items-center gap-1 group"><span class="group-hover:translate-x-1 transition-transform">Cookies</span></button></li>
+            <li><button onclick="openModal('contact-modal')" class="text-slate-400 hover:text-purple-400 transition-colors text-sm inline-flex items-center gap-1 group"><span class="group-hover:translate-x-1 transition-transform">Contact</span></button></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="pt-8 border-t border-white/10">
+        <div class="footer-bottom flex flex-col sm:flex-row items-center justify-between gap-4 opacity-0">
+          <p class="text-slate-500 text-sm">© 2025 ParcelPulse. Tous droits réservés.</p>
+          
+          <p class="text-slate-500 text-sm flex items-center gap-1">
+            Made with <i data-lucide="heart" class="w-4 h-4 text-red-500 fill-red-500"></i> en France
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- MODALS -->
+  
+  <!-- CGU Modal -->
+  <div id="cgu-modal" class="modal">
+    <div class="modal-backdrop" onclick="closeModal('cgu-modal')"></div>
+    <div class="modal-content">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-white">Conditions Générales d'Utilisation</h2>
+        <button onclick="closeModal('cgu-modal')" class="w-10 h-10 rounded-lg glass flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="prose prose-invert max-w-none">
+        <p class="text-slate-400 mb-4">Dernière mise à jour : 26 mars 2025</p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">1. Acceptation des conditions</h3>
+        <p class="text-slate-400 mb-4">En accédant et en utilisant ParcelPulse, vous acceptez d'être lié par ces Conditions Générales d'Utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre service.</p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">2. Description du service</h3>
+        <p class="text-slate-400 mb-4">ParcelPulse est une plateforme de suivi de colis qui permet aux utilisateurs de suivre leurs expéditions auprès de plus de 3200 transporteurs dans le monde entier. Nous fournissons également une API pour l'intégration dans des applications tierces.</p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">3. Compte utilisateur</h3>
+        <p class="text-slate-400 mb-4">Pour accéder à certaines fonctionnalités, vous devez créer un compte. Vous êtes responsable de la confidentialité de vos informations de connexion et de toutes les activités effectuées sous votre compte.</p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">4. Utilisation acceptable</h3>
+        <p class="text-slate-400 mb-4">Vous vous engagez à ne pas utiliser le service à des fins illégales ou non autorisées. Vous ne devez pas tenter de compromettre la sécurité du service ou interférer avec son fonctionnement.</p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">5. Limitation de responsabilité</h3>
+        <p class="text-slate-400 mb-4">ParcelPulse fournit les informations de suivi telles qu'elles sont transmises par les transporteurs. Nous ne garantissons pas l'exactitude ou l'exhaustivité de ces informations.</p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">6. Modifications des conditions</h3>
+        <p class="text-slate-400 mb-4">Nous nous réservons le droit de modifier ces conditions à tout moment. Les modifications prendront effet dès leur publication sur le site.</p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">7. Contact</h3>
+        <p class="text-slate-400 mb-4">Pour toute question concernant ces conditions, contactez-nous à legal@parcelpulse.com</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy Modal -->
+  <div id="privacy-modal" class="modal">
+    <div class="modal-backdrop" onclick="closeModal('privacy-modal')"></div>
+    <div class="modal-content">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-white">Politique de Confidentialité</h2>
+        <button onclick="closeModal('privacy-modal')" class="w-10 h-10 rounded-lg glass flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="prose prose-invert max-w-none">
+        <p class="text-slate-400 mb-4">Dernière mise à jour : 26 mars 2025</p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">1. Collecte des informations</h3>
+        <p class="text-slate-400 mb-4">Nous collectons les informations suivantes :</p>
+        <ul class="list-disc list-inside text-slate-400 mb-4 space-y-2">
+          <li>Informations de compte (email, mot de passe)</li>
+          <li>Numéros de tracking que vous saisissez</li>
+          <li>Données d'utilisation du service</li>
+          <li>Informations techniques (IP, navigateur)</li>
+        </ul>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">2. Utilisation des informations</h3>
+        <p class="text-slate-400 mb-4">Nous utilisons vos informations pour :</p>
+        <ul class="list-disc list-inside text-slate-400 mb-4 space-y-2">
+          <li>Fournir et améliorer notre service</li>
+          <li>Communiquer avec vous concernant votre compte</li>
+          <li>Personnaliser votre expérience</li>
+          <li>Assurer la sécurité de notre plateforme</li>
+        </ul>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">3. Protection des données</h3>
+        <p class="text-slate-400 mb-4">Nous mettons en œuvre des mesures de sécurité appropriées pour protéger vos informations contre tout accès non autorisé, modification, divulgation ou destruction.</p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">4. Partage des informations</h3>
+        <p class="text-slate-400 mb-4">Nous ne vendons pas vos informations personnelles. Nous ne les partageons qu'avec :</p>
+        <ul class="list-disc list-inside text-slate-400 mb-4 space-y-2">
+          <li>Les transporteurs pour obtenir les informations de suivi</li>
+          <li>Nos prestataires de services (hébergement, analytics)</li>
+          <li>Les autorités légales si requis par la loi</li>
+        </ul>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">5. Vos droits</h3>
+        <p class="text-slate-400 mb-4">Vous avez le droit d'accéder, modifier ou supprimer vos informations personnelles. Contactez-nous à privacy@parcelpulse.com pour exercer ces droits.</p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">6. Cookies</h3>
+        <p class="text-slate-400 mb-4">Nous utilisons des cookies pour améliorer votre expérience. Vous pouvez les désactiver dans les paramètres de votre navigateur.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cookies Modal -->
+  <div id="cookies-modal" class="modal">
+    <div class="modal-backdrop" onclick="closeModal('cookies-modal')"></div>
+    <div class="modal-content">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-white">Politique des Cookies</h2>
+        <button onclick="closeModal('cookies-modal')" class="w-10 h-10 rounded-lg glass flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="prose prose-invert max-w-none">
+        <p class="text-slate-400 mb-4">Dernière mise à jour : 26 mars 2025</p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">Qu'est-ce qu'un cookie ?</h3>
+        <p class="text-slate-400 mb-4">Un cookie est un petit fichier texte stocké sur votre appareil lorsque vous visitez un site web. Il permet au site de se souvenir de vos actions et préférences.</p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">Types de cookies utilisés</h3>
+        
+        <h4 class="text-md font-semibold text-white mt-4 mb-2">Cookies essentiels</h4>
+        <p class="text-slate-400 mb-4">Ces cookies sont nécessaires au fonctionnement du site. Ils ne peuvent pas être désactivés.</p>
+        
+        <h4 class="text-md font-semibold text-white mt-4 mb-2">Cookies de performance</h4>
+        <p class="text-slate-400 mb-4">Ces cookies nous aident à comprendre comment les visiteurs interagissent avec notre site en collectant des informations anonymes.</p>
+        
+        <h4 class="text-md font-semibold text-white mt-4 mb-2">Cookies de fonctionnalité</h4>
+        <p class="text-slate-400 mb-4">Ces cookies permettent au site de se souvenir de vos choix (langue, région) pour vous offrir une expérience personnalisée.</p>
+        
+        <h3 class="text-lg font-semibold text-white mt-6 mb-3">Gestion des cookies</h3>
+        <p class="text-slate-400 mb-4">Vous pouvez gérer vos préférences de cookies à tout moment :</p>
+        
+        <div class="space-y-4 mt-6">
+          <div class="flex items-center justify-between p-4 glass rounded-xl">
+            <div>
+              <p class="text-white font-semibold">Cookies essentiels</p>
+              <p class="text-sm text-slate-400">Nécessaires au fonctionnement du site</p>
+            </div>
+            <div class="w-12 h-6 bg-purple-500 rounded-full relative">
+              <div class="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></div>
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between p-4 glass rounded-xl">
+            <div>
+              <p class="text-white font-semibold">Cookies de performance</p>
+              <p class="text-sm text-slate-400">Aident à améliorer le site</p>
+            </div>
+            <button onclick="toggleCookie(this)" class="w-12 h-6 bg-slate-600 rounded-full relative transition-colors">
+              <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></div>
+            </button>
+          </div>
+          
+          <div class="flex items-center justify-between p-4 glass rounded-xl">
+            <div>
+              <p class="text-white font-semibold">Cookies de fonctionnalité</p>
+              <p class="text-sm text-slate-400">Personnalisent votre expérience</p>
+            </div>
+            <button onclick="toggleCookie(this)" class="w-12 h-6 bg-slate-600 rounded-full relative transition-colors">
+              <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></div>
+            </button>
+          </div>
+        </div>
+        
+        <div class="mt-8 flex gap-4">
+          <button onclick="acceptAllCookies()" class="btn-primary">Accepter tous les cookies</button>
+          <button onclick="saveCookiePreferences()" class="btn-secondary">Sauvegarder les préférences</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Modal -->
+  <div id="contact-modal" class="modal">
+    <div class="modal-backdrop" onclick="closeModal('contact-modal')"></div>
+    <div class="modal-content">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-white">Contactez-nous</h2>
+        <button onclick="closeModal('contact-modal')" class="w-10 h-10 rounded-lg glass flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-8">
+        <div>
+          <h3 class="text-lg font-semibold text-white mb-4">Envoyez-nous un message</h3>
+          <form onsubmit="handleContact(event)">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm text-slate-400 mb-2">Nom</label>
+                <input type="text" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500/50 transition-colors" placeholder="Votre nom">
+              </div>
+              <div>
+                <label class="block text-sm text-slate-400 mb-2">Email</label>
+                <input type="email" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500/50 transition-colors" placeholder="votre@email.com">
+              </div>
+              <div>
+                <label class="block text-sm text-slate-400 mb-2">Sujet</label>
+                <select class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50 transition-colors">
+                  <option value="" class="bg-slate-800">Sélectionnez un sujet</option>
+                  <option value="support" class="bg-slate-800">Support technique</option>
+                  <option value="sales" class="bg-slate-800">Ventes</option>
+                  <option value="partnership" class="bg-slate-800">Partenariat</option>
+                  <option value="other" class="bg-slate-800">Autre</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm text-slate-400 mb-2">Message</label>
+                <textarea required rows="4" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500/50 transition-colors resize-none" placeholder="Votre message..."></textarea>
+              </div>
+              <button type="submit" class="w-full btn-primary justify-center">
+                <i data-lucide="send" class="w-4 h-4"></i>
+                Envoyer le message
+              </button>
+            </div>
+          </form>
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-semibold text-white mb-4">Nos coordonnées</h3>
+          <div class="space-y-6">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-teal-500/20 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="mail" class="w-5 h-5 text-purple-400"></i>
+              </div>
+              <div>
+                <p class="text-white font-semibold">Email</p>
+                <p class="text-slate-400">support@parcelpulse.com</p>
+                <p class="text-slate-400">sales@parcelpulse.com</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-teal-500/20 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="map-pin" class="w-5 h-5 text-purple-400"></i>
+              </div>
+              <div>
+                <p class="text-white font-semibold">Adresse</p>
+                <p class="text-slate-400">123 Avenue des Champs-Élysées</p>
+                <p class="text-slate-400">75008 Paris, France</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-teal-500/20 flex items-center justify-center flex-shrink-0">
+                <i data-lucide="clock" class="w-5 h-5 text-purple-400"></i>
+              </div>
+              <div>
+                <p class="text-white font-semibold">Horaires</p>
+                <p class="text-slate-400">Lun - Ven : 9h - 18h</p>
+                <p class="text-slate-400">Support 24/7 pour les clients Pro</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="mt-8 p-4 glass rounded-xl">
+            <p class="text-sm text-slate-400">Temps de réponse moyen : <span class="text-white font-semibold">moins de 4 heures</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+    
+    // Register GSAP ScrollTrigger
+    gsap.registerPlugin(ScrollTrigger);
+    
+    // Navigation scroll effect
+    window.addEventListener('scroll', { passive: true }, () => {
+      const navbar = document.getElementById('navbar');
+      if (window.scrollY > 100) {
+        navbar.classList.add('glass-strong', 'border-b', 'border-white/10', 'shadow-lg');
+        navbar.classList.remove('py-5');
+        navbar.classList.add('py-3');
+      } else {
+        navbar.classList.remove('glass-strong', 'border-b', 'border-white/10', 'shadow-lg');
+        navbar.classList.remove('py-3');
+        navbar.classList.add('py-5');
+      }
+    });
+    
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('hidden');
+    }
+    
+    document.getElementById('mobile-menu-btn').addEventListener('click', toggleMobileMenu);
+    
+    // Scroll to section
+    function scrollToSection(id) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+    
+    // Modal functions
+    function openModal(modalId) {
+      const modal = document.getElementById(modalId);
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal.active').forEach(modal => {
+          modal.classList.remove('active');
+        });
+        document.body.style.overflow = '';
+      }
+    });
+    
+    // FAQ toggle
+    function toggleFaq(button) {
+      const content = button.nextElementSibling;
+      const icon = button.querySelector('[data-lucide="chevron-down"]');
+      
+      if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+        button.querySelector('span').classList.add('text-purple-400');
+      } else {
+        content.classList.add('hidden');
+        icon.style.transform = 'rotate(0deg)';
+        button.querySelector('span').classList.remove('text-purple-400');
+      }
+    }
+    
+    // Cookie toggle
+    function toggleCookie(button) {
+      const dot = button.querySelector('div');
+      if (button.classList.contains('bg-purple-500')) {
+        button.classList.remove('bg-purple-500');
+        button.classList.add('bg-slate-600');
+        dot.style.transform = 'translateX(0)';
+        dot.style.left = '4px';
+        dot.style.right = 'auto';
+      } else {
+        button.classList.remove('bg-slate-600');
+        button.classList.add('bg-purple-500');
+        dot.style.transform = 'translateX(24px)';
+      }
+    }
+    
+    function acceptAllCookies() {
+      document.querySelectorAll('#cookies-modal button[onclick="toggleCookie(this)"]').forEach(btn => {
+        if (!btn.classList.contains('bg-purple-500')) {
+          toggleCookie(btn);
+        }
+      });
+      closeModal('cookies-modal');
+    }
+    
+    function saveCookiePreferences() {
+      closeModal('cookies-modal');
+    }
+    
+    // Contact form handler
+    function handleContact(e) {
+      e.preventDefault();
+      alert('Message envoyé ! Nous vous répondrons dans les plus brefs délais.');
+      closeModal('contact-modal');
+    }
+    
+    // Demo animation
+    let demoInterval = null;
+    let currentDemoStep = 0;
+    
+    function toggleDemo() {
+      if (demoInterval) {
+        clearInterval(demoInterval);
+        demoInterval = null;
+        document.querySelector('.demo-play').classList.remove('hidden');
+        document.querySelector('.demo-pause').classList.add('hidden');
+        document.querySelector('.demo-btn').textContent = 'Lancer la démo';
+      } else {
+        document.querySelector('.demo-play').classList.add('hidden');
+        document.querySelector('.demo-pause').classList.remove('hidden');
+        document.querySelector('.demo-btn').textContent = 'Pause';
+        demoInterval = setInterval(() => {
+          currentDemoStep = (currentDemoStep + 1) % 4;
+          updateDemoStep(currentDemoStep);
+        }, 2000);
+      }
+    }
+    
+    function resetDemo() {
+      if (demoInterval) {
+        clearInterval(demoInterval);
+        demoInterval = null;
+      }
+      currentDemoStep = 0;
+      updateDemoStep(0);
+      document.querySelector('.demo-play').classList.remove('hidden');
+      document.querySelector('.demo-pause').classList.add('hidden');
+      document.querySelector('.demo-btn').textContent = 'Lancer la démo';
+    }
+    
+    function updateDemoStep(step) {
+      document.querySelectorAll('.demo-step').forEach((el, i) => {
+        if (i === step) {
+          el.classList.remove('opacity-50');
+          el.classList.add('bg-gradient-to-r', 'from-purple-500/20', 'to-teal-500/20', 'border', 'border-purple-500/30');
+          el.querySelector('div').classList.remove('bg-slate-700');
+          el.querySelector('div').classList.add('bg-gradient-to-br', 'from-purple-500', 'to-teal-500');
+          el.querySelector('p').classList.remove('text-slate-500');
+          el.querySelector('p').classList.add('text-white');
+        } else if (i < step) {
+          el.classList.remove('opacity-50', 'bg-gradient-to-r', 'from-purple-500/20', 'to-teal-500/20', 'border', 'border-purple-500/30');
+          el.classList.add('bg-white/5', 'border', 'border-white/10');
+          el.querySelector('div').classList.remove('bg-slate-700', 'bg-gradient-to-br', 'from-purple-500', 'to-teal-500');
+          el.querySelector('div').classList.add('bg-emerald-500');
+          el.querySelector('p').classList.remove('text-slate-500');
+          el.querySelector('p').classList.add('text-white');
+          if (!el.querySelector('.check-icon')) {
+            const check = document.createElement('i');
+            check.setAttribute('data-lucide', 'check-circle-2');
+            check.className = 'w-5 h-5 text-emerald-400 ml-auto check-icon';
+            el.appendChild(check);
+          }
+        } else {
+          el.classList.add('opacity-50');
+          el.classList.remove('bg-gradient-to-r', 'from-purple-500/20', 'to-teal-500/20', 'border', 'border-purple-500/30', 'bg-white/5', 'border-white/10');
+          el.querySelector('div').classList.remove('bg-gradient-to-br', 'from-purple-500', 'to-teal-500', 'bg-emerald-500');
+          el.querySelector('div').classList.add('bg-slate-700');
+          el.querySelector('p').classList.add('text-slate-500');
+          el.querySelector('p').classList.remove('text-white');
+          const check = el.querySelector('.check-icon');
+          if (check) check.remove();
+        }
+      });
+      
+      // Update result card
+      const resultCard = document.querySelector('.demo-result');
+      if (step >= 3) {
+        resultCard.classList.remove('opacity-50', 'translate-y-4');
+        resultCard.classList.add('opacity-100', 'translate-y-0');
+      } else {
+        resultCard.classList.add('opacity-50', 'translate-y-4');
+        resultCard.classList.remove('opacity-100', 'translate-y-0');
+      }
+      
+      lucide.createIcons();
+    }
+    
+    // Tracking functionality
+    let trackingHistory = [];
+    
+    function setTrackingNumber(num) {
+      document.getElementById('tracking-input').value = num;
+      document.getElementById('clear-btn').classList.remove('hidden');
+    }
+    
+    function clearInput() {
+      document.getElementById('tracking-input').value = '';
+      document.getElementById('clear-btn').classList.add('hidden');
+    }
+    
+    document.getElementById('tracking-input').addEventListener('input', (e) => {
+      if (e.target.value) {
+        document.getElementById('clear-btn').classList.remove('hidden');
+      } else {
+        document.getElementById('clear-btn').classList.add('hidden');
+      }
+    });
+    
+    function handleTracking(e) {
+      e.preventDefault();
+      const trackingNumber = document.getElementById('tracking-input').value.trim();
+      if (!trackingNumber) return;
+      
+      // Show loading
+      document.getElementById('tracking-search-container').classList.add('hidden');
+      document.getElementById('loading-state').classList.remove('hidden');
+      
+      // Simulate API call
+      setTimeout(() => {
+        document.getElementById('loading-state').classList.add('hidden');
+        showTrackingResult(trackingNumber);
+        addToHistory(trackingNumber);
+      }, 1500);
+    }
+    
+    function showTrackingResult(trackingNumber) {
+      const statuses = ['delivered', 'in_transit', 'out_for_delivery', 'pending'];
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
+      
+      const statusConfig = {
+        delivered: { label: 'Livré', class: 'status-delivered' },
+        in_transit: { label: 'En transit', class: 'status-transit' },
+        out_for_delivery: { label: 'En cours de livraison', class: 'status-delivery' },
+        pending: { label: 'En attente', class: 'status-pending' }
+      };
+      
+      const config = statusConfig[status];
+      const now = new Date();
+      
+      const resultsHTML = `
+        <div class="animate-scale-in">
+          <div class="glass rounded-2xl p-6 mb-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-2xl flex items-center justify-center ${config.class}">
+                  <i data-lucide="${status === 'delivered' ? 'check-circle-2' : status === 'in_transit' ? 'truck' : 'package'}" class="w-6 h-6"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-2xl font-bold text-white">${trackingNumber}</h3>
+                    <button onclick="copyTracking('${trackingNumber}')" class="p-1.5 rounded-lg hover:bg-white/10 transition-colors" title="Copier">
+                      <i data-lucide="copy" class="w-4 h-4 text-slate-400"></i>
+                    </button>
+                  </div>
+                  <p class="text-slate-400">UPS Express</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="px-4 py-2 rounded-full text-sm font-semibold ${config.class} border border-white/10">${config.label}</span>
+                <button onclick="resetTracking()" class="text-slate-400 hover:text-white hover:bg-white/10 px-4 py-2 rounded-lg transition-colors">Nouvelle recherche</button>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-white/10">
+              <div class="flex items-center gap-3">
+                <i data-lucide="map-pin" class="w-5 h-5 text-purple-400"></i>
+                <div>
+                  <p class="text-xs text-slate-400">Origine</p>
+                  <p class="text-sm font-medium text-white">Paris</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <i data-lucide="map-pin" class="w-5 h-5 text-teal-400"></i>
+                <div>
+                  <p class="text-xs text-slate-400">Destination</p>
+                  <p class="text-sm font-medium text-white">Lyon</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <i data-lucide="calendar" class="w-5 h-5 text-blue-400"></i>
+                <div>
+                  <p class="text-xs text-slate-400">Livraison estimée</p>
+                  <p class="text-sm font-medium text-white">${new Date(now.getTime() + 86400000 * 2).toLocaleDateString('fr-FR')}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <i data-lucide="clock" class="w-5 h-5 text-amber-400"></i>
+                <div>
+                  <p class="text-xs text-slate-400">Dernière mise à jour</p>
+                  <p class="text-sm font-medium text-white">${now.toLocaleString('fr-FR')}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="glass rounded-2xl p-6">
+            <h4 class="text-lg font-semibold text-white mb-6">Historique du colis</h4>
+            <div class="relative">
+              <div class="timeline-line"></div>
+              <div class="space-y-6">
+                <div class="relative flex gap-4">
+                  <div class="relative z-10 w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-purple-500 to-teal-500">
+                    <i data-lucide="${status === 'delivered' ? 'check-circle-2' : status === 'in_transit' ? 'truck' : 'package'}" class="w-5 h-5 text-white"></i>
+                  </div>
+                  <div class="flex-1 glass rounded-xl p-4 border border-purple-500/30">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                      <span class="text-sm font-semibold text-purple-400">${config.label}</span>
+                      <span class="text-xs text-slate-500">${now.toLocaleString('fr-FR')}</span>
+                    </div>
+                    <p class="text-white">Colis ${config.label.toLowerCase()}</p>
+                  </div>
+                </div>
+                <div class="relative flex gap-4">
+                  <div class="relative z-10 w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-slate-700">
+                    <i data-lucide="check-circle-2" class="w-5 h-5 text-slate-400"></i>
+                  </div>
+                  <div class="flex-1 glass rounded-xl p-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                      <span class="text-sm font-semibold text-slate-300">En transit</span>
+                      <span class="text-xs text-slate-500">${new Date(now.getTime() - 86400000).toLocaleString('fr-FR')}</span>
+                    </div>
+                    <p class="text-white">Colis en cours de transport</p>
+                  </div>
+                </div>
+                <div class="relative flex gap-4">
+                  <div class="relative z-10 w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-slate-700">
+                    <i data-lucide="check-circle-2" class="w-5 h-5 text-slate-400"></i>
+                  </div>
+                  <div class="flex-1 glass rounded-xl p-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                      <span class="text-sm font-semibold text-slate-300">Expédié</span>
+                      <span class="text-xs text-slate-500">${new Date(now.getTime() - 172800000).toLocaleString('fr-FR')}</span>
+                    </div>
+                    <p class="text-white">Colis expédié par l'expéditeur</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('tracking-results').innerHTML = resultsHTML;
+      document.getElementById('tracking-results').classList.remove('hidden');
+      lucide.createIcons();
+    }
+    
+    function resetTracking() {
+      document.getElementById('tracking-results').classList.add('hidden');
+      document.getElementById('tracking-search-container').classList.remove('hidden');
+      document.getElementById('tracking-input').value = '';
+      document.getElementById('clear-btn').classList.add('hidden');
+    }
+    
+    function copyTracking(num) {
+      navigator.clipboard.writeText(num);
+      alert('Numéro copié !');
+    }
+    
+    function addToHistory(trackingNumber) {
+      const item = {
+        id: Date.now().toString(),
+        trackingNumber,
+        date: new Date().toLocaleString('fr-FR')
+      };
+      trackingHistory.unshift(item);
+      if (trackingHistory.length > 10) trackingHistory.pop();
+      renderHistory();
+    }
+    
+    function renderHistory() {
+      const container = document.getElementById('tracking-history');
+      const list = document.getElementById('history-list');
+      const count = document.getElementById('history-count');
+      
+      if (trackingHistory.length === 0) {
+        container.classList.add('hidden');
+        return;
+      }
+      
+      container.classList.remove('hidden');
+      count.textContent = trackingHistory.length + ' colis';
+      
+      list.innerHTML = trackingHistory.map((item, i) => `
+        <div class="group flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all cursor-pointer animate-fade-in" style="animation-delay: ${i * 50}ms" onclick="setTrackingNumber('${item.trackingNumber}'); handleTracking({preventDefault: () => {}});">
+          <i data-lucide="package" class="w-4 h-4 text-purple-400"></i>
+          <div class="flex flex-col">
+            <span class="text-sm font-medium text-white">${item.trackingNumber}</span>
+            <span class="text-xs text-slate-500 flex items-center gap-1">
+              <i data-lucide="clock" class="w-3 h-3"></i>
+              ${item.date}
+            </span>
+          </div>
+          <div class="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button onclick="event.stopPropagation(); setTrackingNumber('${item.trackingNumber}'); handleTracking({preventDefault: () => {}});" class="p-1 rounded-lg hover:bg-white/10 transition-colors" title="Voir">
+              <i data-lucide="external-link" class="w-3 h-3 text-slate-400"></i>
+            </button>
+            <button onclick="event.stopPropagation(); removeFromHistory('${item.id}')" class="p-1 rounded-lg hover:bg-red-500/20 transition-colors" title="Supprimer">
+              <i data-lucide="x" class="w-3 h-3 text-slate-400 hover:text-red-400"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+      
+      lucide.createIcons();
+    }
+    
+    function removeFromHistory(id) {
+      trackingHistory = trackingHistory.filter(item => item.id !== id);
+      renderHistory();
+    }
+    
+    // GSAP Animations
+    document.addEventListener('DOMContentLoaded', () => {
+      // Hero animations
+      gsap.to('.hero-badge', { opacity: 1, y: 0, duration: 0.6, delay: 0.3, ease: 'back.out(1.7)' });
+      gsap.to('.hero-title span', { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, delay: 0.5, ease: 'expo.out' });
+      gsap.to('.hero-description', { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.7, delay: 0.9, ease: 'power2.out' });
+      gsap.to('.hero-search', { opacity: 1, scale: 1, duration: 0.8, delay: 1.1, ease: 'elastic.out(1, 0.5)' });
+      gsap.to('.stat-item', { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, delay: 1.3, ease: 'expo.out' });
+      gsap.to('.floating-card', { opacity: 1, rotateY: 0, duration: 1, stagger: 0.2, delay: 1, ease: 'expo.out' });
+      
+      // Scroll animations
+      gsap.to('.carousel-title', {
+        scrollTrigger: { trigger: '.carousel-title', start: 'top 80%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.7, ease: 'expo.out'
+      });
+      
+      gsap.to('.hiw-title', {
+        scrollTrigger: { trigger: '.hiw-title', start: 'top 80%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.8, ease: 'expo.out'
+      });
+      
+      gsap.to('.hiw-subtitle', {
+        scrollTrigger: { trigger: '.hiw-subtitle', start: 'top 80%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: 'power2.out'
+      });
+      
+      gsap.to('.progress-line', {
+        scrollTrigger: { trigger: '.progress-line', start: 'top 70%', toggleActions: 'play none none reverse' },
+        scaleX: 1, duration: 1.5, delay: 0.5, ease: 'expo.out'
+      });
+      
+      gsap.to('.step-card', {
+        scrollTrigger: { trigger: '.step-card', start: 'top 75%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, rotateX: 0, duration: 0.8, stagger: 0.15, ease: 'expo.out'
+      });
+      
+      gsap.to('.features-title', {
+        scrollTrigger: { trigger: '.features-title', start: 'top 80%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.8, ease: 'expo.out'
+      });
+      
+      gsap.to('.features-subtitle', {
+        scrollTrigger: { trigger: '.features-subtitle', start: 'top 80%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: 'power2.out'
+      });
+      
+      gsap.to('.feature-card', {
+        scrollTrigger: { trigger: '.feature-card', start: 'top 75%', toggleActions: 'play none none reverse' },
+        opacity: 1, scale: 1, duration: 0.6, stagger: 0.1, ease: 'elastic.out(1, 0.5)'
+      });
+      
+      gsap.to('.demo-title', {
+        scrollTrigger: { trigger: '.demo-title', start: 'top 80%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.8, ease: 'expo.out'
+      });
+      
+      gsap.to('.demo-container', {
+        scrollTrigger: { trigger: '.demo-container', start: 'top 75%', toggleActions: 'play none none reverse' },
+        opacity: 1, scale: 1, duration: 0.8, delay: 0.2, ease: 'expo.out'
+      });
+      
+      gsap.to('.pricing-title', {
+        scrollTrigger: { trigger: '.pricing-title', start: 'top 80%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.8, ease: 'expo.out'
+      });
+      
+      gsap.to('.pricing-subtitle', {
+        scrollTrigger: { trigger: '.pricing-subtitle', start: 'top 80%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: 'power2.out'
+      });
+      
+      gsap.to('.pricing-card', {
+        scrollTrigger: { trigger: '.pricing-card', start: 'top 75%', toggleActions: 'play none none reverse' },
+        opacity: 1, rotateY: 0, duration: 0.8, stagger: 0.15, ease: 'expo.out'
+      });
+      
+      gsap.to('.testimonials-title', {
+        scrollTrigger: { trigger: '.testimonials-title', start: 'top 80%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.8, ease: 'expo.out'
+      });
+      
+      gsap.to('.testimonials-subtitle', {
+        scrollTrigger: { trigger: '.testimonials-subtitle', start: 'top 80%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: 'power2.out'
+      });
+      
+      gsap.to('.testimonials-column', {
+        scrollTrigger: { trigger: '.testimonials-column', start: 'top 75%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.8, stagger: 0.15, ease: 'expo.out'
+      });
+      
+      gsap.to('.faq-title', {
+        scrollTrigger: { trigger: '.faq-title', start: 'top 80%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.8, ease: 'expo.out'
+      });
+      
+      gsap.to('.faq-subtitle', {
+        scrollTrigger: { trigger: '.faq-subtitle', start: 'top 80%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.6, delay: 0.2, ease: 'power2.out'
+      });
+      
+      gsap.to('.faq-item', {
+        scrollTrigger: { trigger: '.faq-item', start: 'top 75%', toggleActions: 'play none none reverse' },
+        opacity: 1, x: 0, duration: 0.6, stagger: 0.1, ease: 'expo.out'
+      });
+      
+      gsap.to('.cta-container', {
+        scrollTrigger: { trigger: '.cta-container', start: 'top 80%', toggleActions: 'play none none reverse' },
+        opacity: 1, scale: 1, duration: 0.8, ease: 'expo.out'
+      });
+      
+      gsap.to('.cta-title span', {
+        scrollTrigger: { trigger: '.cta-title', start: 'top 75%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.6, stagger: 0.1, delay: 0.3, ease: 'expo.out'
+      });
+      
+      gsap.to('.footer-border', {
+        scrollTrigger: { trigger: '.footer-border', start: 'top 90%', toggleActions: 'play none none reverse' },
+        scaleX: 1, duration: 1, ease: 'expo.out'
+      });
+      
+      gsap.to('.footer-column', {
+        scrollTrigger: { trigger: '.footer-column', start: 'top 85%', toggleActions: 'play none none reverse' },
+        opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: 'expo.out'
+      });
+      
+      gsap.to('.footer-bottom', {
+        scrollTrigger: { trigger: '.footer-bottom', start: 'top 80%', toggleActions: 'play none none reverse' },
+        opacity: 1, duration: 0.4, delay: 0.6, ease: 'power2.out'
+      });
+    });
+  </script>
+</body>
+</html>
