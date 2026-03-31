@@ -3,394 +3,2539 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TrackMaster Pro – Suivi universel sans backend</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>WordOnline Pro - Éditeur Word Complet en Ligne</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 2rem;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .container {
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #6366f1;
+            --accent: #8b5cf6;
+            --bg-light: #f8fafc;
+            --bg-white: #ffffff;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade { animation: fadeIn 0.6s ease-out forwards; }
+        .animate-slide { animation: slideUp 0.8s ease-out forwards; }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            padding: 1rem 0;
+        }
+
+        .header.scrolled {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            padding: 0.75rem 0;
+        }
+
+        .header-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            box-shadow: var(--shadow);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-desktop {
+            display: none;
+        }
+
+        @media (min-width: 1024px) {
+            .nav-desktop {
+                display: flex;
+                align-items: center;
+                gap: 2rem;
+            }
+        }
+
+        .nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-dark);
+        }
+
+        .btn-ghost:hover {
+            color: var(--primary);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-lg {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 2px solid var(--border);
+            color: var(--text-dark);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1.25rem;
+        }
+
+        @media (min-width: 1024px) {
+            .menu-toggle {
+                display: none;
+            }
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            z-index: 1001;
+            padding: 2rem;
+            transition: right 0.3s ease;
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-menu.open {
+            right: 0;
+        }
+
+        .mobile-menu-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .mobile-nav {
+            margin-top: 3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .mobile-nav a {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 10rem 2rem 6rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .hero-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+        }
+
+        .hero-blob-1 {
+            width: 500px;
+            height: 500px;
+            background: #3b82f6;
+            top: -200px;
+            right: -100px;
+        }
+
+        .hero-blob-2 {
+            width: 400px;
+            height: 400px;
+            background: #8b5cf6;
+            bottom: -100px;
+            left: -100px;
+        }
+
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #dbeafe;
+            border: 1px solid #bfdbfe;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #1d4ed8;
+            margin-bottom: 2rem;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            animation: slideUp 0.8s ease-out 0.1s both;
+        }
+
+        .hero-title span {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-desc {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto 2.5rem;
+            animation: slideUp 0.8s ease-out 0.2s both;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 3rem;
+            animation: slideUp 0.8s ease-out 0.3s both;
+        }
+
+        @media (min-width: 640px) {
+            .hero-actions {
+                flex-direction: row;
+            }
+        }
+
+        .hero-trust {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            animation: fadeIn 0.8s ease-out 0.4s both;
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .trust-item i {
+            color: #10b981;
+        }
+
+        /* Stats Section */
+        .stats {
+            padding: 4rem 2rem;
+            background: white;
+        }
+
+        .stats-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .stats-container {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 2rem;
+            background: var(--bg-light);
+        }
+
+        .section-container {
             max-width: 1200px;
             margin: 0 auto;
         }
-        .header {
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .section-desc {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            border: 1px solid var(--border);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+            border-color: #bfdbfe;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-desc {
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            padding: 6rem 2rem;
+            background: white;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            position: relative;
+        }
+
+        .step-item {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: white;
+            margin: 0 auto 1.5rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .step-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .step-desc {
+            color: var(--text-muted);
+        }
+
+        .step-arrow {
+            display: none;
+            position: absolute;
+            top: 40px;
+            right: -30px;
+            font-size: 2rem;
+            color: #cbd5e1;
+        }
+
+        @media (min-width: 768px) {
+            .step-arrow {
+                display: block;
+            }
+        }
+
+        .step-item:last-child .step-arrow {
+            display: none;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 6rem 2rem;
+            background: linear-gradient(to bottom, var(--bg-light), white);
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .testimonial-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .testimonial-stars {
+            display: flex;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .testimonial-stars i {
+            color: #fbbf24;
+        }
+
+        .testimonial-text {
+            color: var(--text-dark);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .author-info h4 {
+            font-weight: 600;
+        }
+
+        .author-info p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* CTA Section */
+        .cta {
+            padding: 6rem 2rem;
+        }
+
+        .cta-box {
+            max-width: 900px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 4rem 2rem;
+            border-radius: 30px;
             text-align: center;
             color: white;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .cta-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .cta-desc {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .cta-btn {
+            background: white;
+            color: var(--primary);
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+        }
+
+        .cta-btn:hover {
+            background: #f8fafc;
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        .footer {
+            background: #0f172a;
+            color: white;
+            padding: 4rem 2rem 2rem;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
             margin-bottom: 3rem;
         }
-        .logo {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+
+        .footer-brand .logo {
+            margin-bottom: 1rem;
         }
-        .tagline {
-            font-size: 1.1rem;
-            opacity: 0.95;
+
+        .footer-brand .logo-text {
+            color: white;
+            -webkit-text-fill-color: white;
         }
-        .search-card {
-            background: white;
-            border-radius: 1.5rem;
-            padding: 2rem;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
+
+        .footer-brand p {
+            color: #94a3b8;
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
         }
-        .input-group {
+
+        .social-links {
             display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
+            gap: 0.75rem;
         }
-        .input-group input {
-            flex: 1;
-            padding: 1rem 1.5rem;
-            font-size: 1rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 1rem;
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
             transition: all 0.3s;
         }
-        .input-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+
+        .social-link:hover {
+            background: var(--primary);
+            transform: translateY(-2px);
         }
-        .input-group button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 0 2rem;
-            border-radius: 1rem;
+
+        .footer-column h4 {
+            font-size: 1.1rem;
             font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.3s;
             cursor: pointer;
-            transition: transform 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .footer-contact li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+
+        .footer-contact i {
+            color: var(--primary);
+        }
+
+        .footer-contact a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-contact a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .footer-bottom {
+                flex-direction: row;
+                justify-content: space-between;
+            }
+        }
+
+        .footer-bottom p {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .footer-bottom-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .footer-bottom-links a {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+
+        .footer-bottom-links a:hover {
+            color: white;
+        }
+
+        /* Editor Page */
+        .editor-page {
+            display: none;
+            min-height: 100vh;
+            background: #f1f5f9;
+            flex-direction: column;
+        }
+
+        .editor-page.active {
+            display: flex;
+        }
+
+        .editor-header {
+            background: #2b579a;
+            color: white;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .editor-header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .editor-back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.3s;
+        }
+
+        .editor-back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .editor-title {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
-        .input-group button:hover {
-            transform: translateY(-2px);
-        }
-        .result-card {
-            background: white;
-            border-radius: 1.5rem;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            margin-top: 2rem;
-        }
-        .status-header {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            padding: 1.5rem;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .tracking-number {
-            font-size: 0.85rem;
-            color: #64748b;
-            font-family: monospace;
-        }
-        .current-status {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-top: 0.5rem;
-            color: #0f172a;
-        }
-        .badge {
-            display: inline-block;
-            background: #10b981;
+
+        .editor-title-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
             color: white;
-            padding: 0.25rem 0.75rem;
-            border-radius: 2rem;
-            font-size: 0.75rem;
-            margin-left: 0.75rem;
-            vertical-align: middle;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            min-width: 200px;
         }
-        .timeline {
-            padding: 1.5rem;
+
+        .editor-title-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
         }
-        .timeline-item {
+
+        .editor-header-right {
             display: flex;
-            gap: 1rem;
-            padding: 1rem 0;
-            border-left: 2px solid #e2e8f0;
-            margin-left: 1rem;
+            gap: 0.5rem;
+        }
+
+        .editor-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.3s;
+            font-size: 0.85rem;
+        }
+
+        .editor-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .editor-menu-bar {
+            background: #f3f3f3;
+            border-bottom: 1px solid #d1d5db;
+            padding: 0.25rem 1rem;
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .editor-menu-item {
             position: relative;
         }
-        .timeline-item::before {
-            content: '';
-            width: 12px;
-            height: 12px;
-            background: #667eea;
-            border-radius: 50%;
-            position: absolute;
-            left: -7px;
-            top: 1.2rem;
-        }
-        .timeline-date {
-            min-width: 120px;
-            font-weight: 600;
-            color: #475569;
-        }
-        .timeline-desc {
-            flex: 1;
-            color: #1e293b;
-        }
-        .timeline-location {
-            font-size: 0.8rem;
-            color: #64748b;
-            margin-top: 0.25rem;
-        }
-        .loader {
-            text-align: center;
-            padding: 3rem;
-        }
-        .error {
-            background: #fee2e2;
-            color: #dc2626;
-            padding: 1rem;
-            border-radius: 1rem;
-            margin: 1rem;
-        }
-        footer {
-            text-align: center;
-            margin-top: 3rem;
-            color: white;
-        }
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-bottom: 1rem;
-        }
-        .footer-links a {
-            color: white;
-            text-decoration: none;
-            cursor: pointer;
-            opacity: 0.8;
-        }
-        .footer-links a:hover { opacity: 1; }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background: white;
-            max-width: 500px;
-            width: 90%;
-            border-radius: 1rem;
-            padding: 1.5rem;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-            font-weight: 700;
-            font-size: 1.2rem;
-        }
-        .close-modal {
-            cursor: pointer;
+
+        .editor-menu-btn {
             background: none;
             border: none;
-            font-size: 1.5rem;
+            padding: 0.4rem 0.6rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #374151;
+            border-radius: 4px;
+            transition: background 0.2s;
+            white-space: nowrap;
         }
-        @media (max-width: 640px) {
-            body { padding: 1rem; }
-            .timeline-item { flex-direction: column; gap: 0.25rem; }
-            .timeline-date { min-width: auto; }
+
+        .editor-menu-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .editor-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            min-width: 200px;
+            z-index: 100;
+        }
+
+        .editor-menu-item:hover .editor-dropdown {
+            display: block;
+        }
+
+        .editor-dropdown-item {
+            padding: 0.6rem 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+
+        .editor-dropdown-item:hover {
+            background: #f3f4f6;
+        }
+
+        .editor-dropdown-divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 0.5rem 0;
+        }
+
+        .editor-toolbar {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 0.5rem 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            align-items: center;
+        }
+
+        .toolbar-group {
+            display: flex;
+            gap: 0.15rem;
+            padding: 0 0.5rem;
+            border-right: 1px solid #e5e7eb;
+        }
+
+        .toolbar-group:last-child {
+            border-right: none;
+        }
+
+        .toolbar-btn {
+            width: 32px;
+            height: 32px;
+            background: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4b5563;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .toolbar-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .toolbar-btn.active {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .toolbar-select {
+            height: 32px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 0 0.5rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            background: white;
+        }
+
+        .toolbar-select:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .color-picker {
+            position: relative;
+        }
+
+        .color-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 4px;
+        }
+
+        .color-picker:hover .color-dropdown {
+            display: grid;
+        }
+
+        .color-option {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            cursor: pointer;
+            border: 1px solid #e5e7eb;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .editor-workspace {
+            flex: 1;
+            overflow: auto;
+            padding: 2rem;
+            background: #f1f5f9;
+        }
+
+        .editor-page-sheet {
+            max-width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 2cm;
+        }
+
+        .editor-content {
+            outline: none;
+            min-height: 250mm;
+            font-family: Arial, sans-serif;
+            font-size: 12pt;
+            line-height: 1.5;
+        }
+
+        .editor-content p {
+            margin-bottom: 0.75em;
+        }
+
+        .editor-content h1 {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 0.5em 0;
+        }
+
+        .editor-content h2 {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 0.5em 0;
+        }
+
+        .editor-content h3 {
+            font-size: 1.17em;
+            font-weight: bold;
+            margin: 0.5em 0;
+        }
+
+        .editor-content ul, .editor-content ol {
+            margin: 0.5em 0;
+            padding-left: 2em;
+        }
+
+        .editor-content blockquote {
+            border-left: 4px solid #e5e7eb;
+            padding-left: 1em;
+            margin: 1em 0;
+            font-style: italic;
+            color: #4b5563;
+        }
+
+        .editor-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+
+        .editor-content td, .editor-content th {
+            border: 1px solid #d1d5db;
+            padding: 8px;
+        }
+
+        .editor-status-bar {
+            background: #2b579a;
+            color: white;
+            padding: 0.4rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+
+        .status-left {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .zoom-btn {
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .zoom-slider {
+            width: 80px;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: auto;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .modal-close {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .modal-close:hover {
+            background: var(--primary-dark);
+        }
+
+        .find-replace-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .find-replace-inputs label {
+            font-weight: 500;
+            color: var(--text-dark);
+            font-size: 0.9rem;
+        }
+
+        .find-replace-inputs input {
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .find-replace-inputs input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .find-replace-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toast {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: slideUp 0.3s ease-out;
+            min-width: 250px;
+        }
+
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast.info {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .toast i {
+            font-size: 1.1rem;
+        }
+
+        .toast.success i {
+            color: #10b981;
+        }
+
+        .toast.error i {
+            color: #ef4444;
+        }
+
+        .toast.info i {
+            color: #3b82f6;
+        }
+
+        .hidden-input {
+            display: none;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <div class="logo">📦 TrackMaster Pro</div>
-        <div class="tagline">Shein • Temu • Amazon • Aliexpress • DHL • UPS</div>
-    </div>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
 
-    <div class="search-card">
-        <div class="input-group">
-            <input type="text" id="trackingInput" placeholder="Ex: LV123456789CN, 1Z9999WX..." autocomplete="off">
-            <button id="trackBtn"><i class="fas fa-search"></i> Suivre en direct</button>
-        </div>
-        <div id="infoMessage" style="margin-top: 0.75rem; font-size: 0.85rem; color: #64748b;"></div>
-    </div>
+    <!-- Home Page -->
+    <div id="homePage" class="home-page">
+        <!-- Header -->
+        <header class="header" id="header">
+            <div class="header-container">
+                <a href="#" class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-file-word"></i>
+                    </div>
+                    <span class="logo-text">WordOnline Pro</span>
+                </a>
 
-    <div id="resultArea"></div>
-</div>
+                <nav class="nav-desktop">
+                    <a href="#accueil" class="nav-link">Accueil</a>
+                    <a href="#features" class="nav-link">Fonctionnalités</a>
+                    <a href="#avantages" class="nav-link">Avantages</a>
+                    <a href="#testimonials" class="nav-link">Témoignages</a>
+                    <a href="#contact" class="nav-link">Contact</a>
+                </nav>
 
-<footer>
-    <div class="footer-links">
-        <a id="mentionsLink">📜 Mentions légales</a>
-        <a id="privacyLink">🔒 Confidentialité</a>
-        <a id="contactLink">📧 Contact</a>
-    </div>
-    <div>© 2025 TrackMaster Pro – Scraping réel avec JavaScript (DOMParser)</div>
-</footer>
-
-<!-- Modales -->
-<div id="mentionsModal" class="modal"><div class="modal-content"><div class="modal-header"><span>Mentions légales</span><button class="close-modal">&times;</button></div><p>TrackMaster Pro utilise un scraping JavaScript pur via DOMParser. Les données viennent de parcelsapp.com en temps réel. Aucune donnée n'est stockée.</p></div></div>
-<div id="privacyModal" class="modal"><div class="modal-content"><div class="modal-header"><span>Confidentialité</span><button class="close-modal">&times;</button></div><p>Aucun cookie, aucune donnée personnelle collectée. Les requêtes passent par un proxy CORS public.</p></div></div>
-<div id="contactModal" class="modal"><div class="modal-content"><div class="modal-header"><span>Contact</span><button class="close-modal">&times;</button></div><p>Email : support@trackmaster-pro.fr</p></div></div>
-
-<script>
-    // Gestion des modales
-    function setupModal(triggerId, modalId) {
-        const trigger = document.getElementById(triggerId);
-        const modal = document.getElementById(modalId);
-        const closeBtn = modal.querySelector('.close-modal');
-        trigger.addEventListener('click', () => modal.style.display = 'flex');
-        closeBtn.addEventListener('click', () => modal.style.display = 'none');
-        window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
-    }
-    setupModal('mentionsLink', 'mentionsModal');
-    setupModal('privacyLink', 'privacyModal');
-    setupModal('contactLink', 'contactModal');
-
-    // Proxy CORS fiable
-    const CORS_PROXY = 'https://api.allorigins.win/get?url=';
-    const TARGET_BASE = 'https://parcelsapp.com/fr/chercher?q=';
-
-    async function trackPackage(trackingCode) {
-        const resultArea = document.getElementById('resultArea');
-        resultArea.innerHTML = `
-            <div class="loader">
-                <i class="fas fa-spinner fa-pulse fa-2x" style="color:#667eea"></i>
-                <p style="margin-top: 1rem;">Scraping en temps réel via DOMParser...</p>
-            </div>
-        `;
-
-        try {
-            // Étape 1 : Récupérer la page via proxy
-            const proxyUrl = CORS_PROXY + encodeURIComponent(TARGET_BASE + trackingCode);
-            const response = await fetch(proxyUrl);
-            const data = await response.json();
-            
-            if (!data.contents) throw new Error("Contenu non récupérable");
-
-            // Étape 2 : Parser le HTML avec DOMParser (équivalent BeautifulSoup en JS)
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(data.contents, 'text/html');
-
-            // Étape 3 : Extraire les données comme avec BeautifulSoup
-            const trackingNumberElem = doc.querySelector('span.tracking-number');
-            const trackingNumber = trackingNumberElem ? trackingNumberElem.textContent.trim() : trackingCode;
-
-            const statusElem = doc.querySelector('div.track-status') || doc.querySelector('div.status');
-            const currentStatus = statusElem ? statusElem.textContent.trim() : "Statut en cours de mise à jour";
-
-            // Étape 4 : Extraire la timeline
-            const timeline = [];
-            const events = doc.querySelectorAll('div.event, li.timeline-item');
-            
-            if (events.length === 0) {
-                const rows = doc.querySelectorAll('tr.timeline-row');
-                rows.forEach(row => {
-                    const cells = row.querySelectorAll('td');
-                    if (cells.length >= 3) {
-                        timeline.push({
-                            date: cells[0].textContent.trim(),
-                            location: cells[1].textContent.trim(),
-                            description: cells[2].textContent.trim()
-                        });
-                    }
-                });
-            } else {
-                events.forEach(event => {
-                    const dateElem = event.querySelector('.date');
-                    const locElem = event.querySelector('.location');
-                    const descElem = event.querySelector('.description');
-                    timeline.push({
-                        date: dateElem ? dateElem.textContent.trim() : '',
-                        location: locElem ? locElem.textContent.trim() : '',
-                        description: descElem ? descElem.textContent.trim() : ''
-                    });
-                });
-            }
-
-            if (timeline.length === 0 && !statusElem) {
-                throw new Error("Aucune information trouvée pour ce numéro.");
-            }
-
-            displayResults(trackingNumber, currentStatus, timeline);
-        } catch (error) {
-            resultArea.innerHTML = `
-                <div class="error">
-                    <i class="fas fa-exclamation-triangle"></i> 
-                    <strong>Erreur :</strong> ${error.message}<br>
-                    <small>Vérifiez le numéro de suivi ou réessayez dans quelques instants.</small>
+                <div class="header-actions">
+                    <button class="btn btn-ghost" onclick="openModal('login')">Connexion</button>
+                    <button class="btn btn-primary" onclick="openEditor()">
+                        Commencer
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
                 </div>
-            `;
-        }
-    }
 
-    function displayResults(trackingNumber, currentStatus, timeline) {
-        const resultArea = document.getElementById('resultArea');
-        let timelineHtml = `<div class="timeline">`;
-        
-        if (timeline.length === 0) {
-            timelineHtml += `<p style="color: #64748b;">Aucun événement disponible pour le moment.</p>`;
-        } else {
-            timeline.forEach(ev => {
-                timelineHtml += `
-                    <div class="timeline-item">
-                        <div class="timeline-date">${escapeHtml(ev.date || 'Date inconnue')}</div>
-                        <div>
-                            <div class="timeline-desc">${escapeHtml(ev.description || 'Mise à jour')}</div>
-                            ${ev.location ? `<div class="timeline-location"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(ev.location)}</div>` : ''}
+                <button class="menu-toggle" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Mobile Menu -->
+        <div class="overlay" id="overlay" onclick="toggleMobileMenu()"></div>
+        <div class="mobile-menu" id="mobileMenu">
+            <button class="mobile-menu-close" onclick="toggleMobileMenu()">
+                <i class="fas fa-times"></i>
+            </button>
+            <nav class="mobile-nav">
+                <a href="#accueil" onclick="toggleMobileMenu()">Accueil</a>
+                <a href="#features" onclick="toggleMobileMenu()">Fonctionnalités</a>
+                <a href="#avantages" onclick="toggleMobileMenu()">Avantages</a>
+                <a href="#testimonials" onclick="toggleMobileMenu()">Témoignages</a>
+                <a href="#contact" onclick="toggleMobileMenu()">Contact</a>
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 1rem 0;">
+                <button class="btn btn-primary" onclick="openEditor()" style="width: 100%; justify-content: center;">
+                    Commencer l'Édition
+                </button>
+            </nav>
+        </div>
+
+        <!-- Hero Section -->
+        <section class="hero" id="accueil">
+            <div class="hero-bg">
+                <div class="hero-blob hero-blob-1"></div>
+                <div class="hero-blob hero-blob-2"></div>
+            </div>
+            <div class="hero-container">
+                <div class="hero-badge">
+                    <i class="fas fa-sparkles"></i>
+                    <span>Gratuit pour les étudiants</span>
+                </div>
+                <h1 class="hero-title">
+                    Votre <span>Word 2019</span> en ligne,<br>
+                    gratuit et complet
+                </h1>
+                <p class="hero-desc">
+                    Créez, éditez et exportez vos documents professionnels avec toutes les fonctionnalités 
+                    de Microsoft Word, directement dans votre navigateur. Aucune installation requise.
+                </p>
+                <div class="hero-actions">
+                    <button class="btn btn-primary btn-lg" onclick="openEditor()">
+                        <i class="fas fa-pen"></i>
+                        Commencer à Éditer
+                    </button>
+                    <button class="btn btn-outline btn-lg" onclick="openModal('demo')">
+                        <i class="fas fa-external-link-alt"></i>
+                        Voir la Démo
+                    </button>
+                </div>
+                <div class="hero-trust">
+                    <div class="trust-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>100% Sécurisé</span>
+                    </div>
+                    <div class="trust-item">
+                        <i class="fas fa-bolt"></i>
+                        <span>Ultra Rapide</span>
+                    </div>
+                    <div class="trust-item">
+                        <i class="fas fa-globe"></i>
+                        <span>Accessible Partout</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Section -->
+        <section class="stats">
+            <div class="stats-container">
+                <div class="stat-item">
+                    <div class="stat-value">50K+</div>
+                    <div class="stat-label">Utilisateurs Actifs</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">1M+</div>
+                    <div class="stat-label">Documents Créés</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">99.9%</div>
+                    <div class="stat-label">Satisfaction</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">24/7</div>
+                    <div class="stat-label">Disponibilité</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features" id="features">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title">Tout ce dont vous avez besoin</h2>
+                    <p class="section-desc">
+                        Une suite complète d'outils d'édition de documents, accessible gratuitement 
+                        depuis n'importe quel appareil.
+                    </p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-pen"></i>
+                        </div>
+                        <h3 class="feature-title">Édition Complète</h3>
+                        <p class="feature-desc">Toutes les fonctionnalités de Word 2019 : mise en forme, styles, tableaux, images et plus encore.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-download"></i>
+                        </div>
+                        <h3 class="feature-title">Export Multiformat</h3>
+                        <p class="feature-desc">Téléchargez vos documents en .docx ou .pdf en un seul clic, conservant toute la mise en forme.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <h3 class="feature-title">Import Facile</h3>
+                        <p class="feature-desc">Importez vos fichiers .docx existants et continuez l'édition sans perdre le formatage.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <h3 class="feature-title">100% En Ligne</h3>
+                        <p class="feature-desc">Aucune installation nécessaire. Accédez à vos documents depuis n'importe où, anytime.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 class="feature-title">Sécurisé</h3>
+                        <p class="feature-desc">Vos documents restent sur votre appareil. Aucune donnée envoyée sur nos serveurs.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3 class="feature-title">Ultra Rapide</h3>
+                        <p class="feature-desc">Interface fluide et réactive pour une productivité maximale sans latence.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section class="how-it-works" id="avantages">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title">Comment ça marche ?</h2>
+                    <p class="section-desc">Commencez à éditer vos documents en 3 étapes simples</p>
+                </div>
+                <div class="steps-grid">
+                    <div class="step-item">
+                        <div class="step-number">01</div>
+                        <h3 class="step-title">Créez ou Importez</h3>
+                        <p class="step-desc">Commencez un nouveau document ou importez un fichier .docx existant.</p>
+                        <i class="fas fa-chevron-right step-arrow"></i>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">02</div>
+                        <h3 class="step-title">Éditez en Ligne</h3>
+                        <p class="step-desc">Utilisez toutes les fonctionnalités de Word 2019 pour formater votre document.</p>
+                        <i class="fas fa-chevron-right step-arrow"></i>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">03</div>
+                        <h3 class="step-title">Exportez</h3>
+                        <p class="step-desc">Téléchargez votre document en .docx ou .pdf, prêt à être partagé.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials" id="testimonials">
+            <div class="section-container">
+                <div class="section-header">
+                    <h2 class="section-title">Ils nous font confiance</h2>
+                    <p class="section-desc">Des milliers d'étudiants et de professionnels utilisent WordOnline Pro chaque jour</p>
+                </div>
+                <div class="testimonials-grid">
+                    <div class="testimonial-card">
+                        <div class="testimonial-stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">"WordOnline Pro a sauvé ma vie pendant mes examens ! Je peux éditer mes mémoires partout."</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">M</div>
+                            <div class="author-info">
+                                <h4>Marie Dupont</h4>
+                                <p>Étudiante en Droit</p>
+                            </div>
                         </div>
                     </div>
-                `;
-            });
-        }
-        timelineHtml += `</div>`;
-
-        resultArea.innerHTML = `
-            <div class="result-card">
-                <div class="status-header">
-                    <div class="tracking-number">📮 ${escapeHtml(trackingNumber)}</div>
-                    <div class="current-status">
-                        ${escapeHtml(currentStatus)}
-                        <span class="badge"><i class="fas fa-check-circle"></i> Données réelles</span>
+                    <div class="testimonial-card">
+                        <div class="testimonial-stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">"Un outil indispensable pour préparer mes cours. L'export PDF est parfait pour distribuer aux élèves."</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">T</div>
+                            <div class="author-info">
+                                <h4>Thomas Martin</h4>
+                                <p>Professeur Universitaire</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="testimonial-stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">"Interface intuitive, rapide et gratuite. Exactement ce qu'il me fallait pour mes rapports !"</p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">S</div>
+                            <div class="author-info">
+                                <h4>Sophie Bernard</h4>
+                                <p>Étudiante en Médecine</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                ${timelineHtml}
             </div>
-        `;
-    }
+        </section>
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
+        <!-- CTA Section -->
+        <section class="cta">
+            <div class="cta-box">
+                <h2 class="cta-title">Prêt à commencer ?</h2>
+                <p class="cta-desc">Rejoignez plus de 50 000 utilisateurs et créez vos documents professionnels gratuitement dès maintenant.</p>
+                <button class="btn cta-btn" onclick="openEditor()">
+                    <i class="fas fa-pen"></i>
+                    Lancer l'Éditeur
+                </button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer" id="contact">
+            <div class="footer-container">
+                <div class="footer-grid">
+                    <!-- Brand -->
+                    <div class="footer-brand">
+                        <a href="#" class="logo">
+                            <div class="logo-icon">
+                                <i class="fas fa-file-word"></i>
+                            </div>
+                            <span class="logo-text">WordOnline Pro</span>
+                        </a>
+                        <p>Votre éditeur de documents en ligne gratuit, avec toutes les fonctionnalités de Word 2019.</p>
+                        <div class="social-links">
+                            <a href="#" class="social-link" onclick="openModal('facebook'); return false;"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="social-link" onclick="openModal('twitter'); return false;"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-link" onclick="openModal('instagram'); return false;"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="social-link" onclick="openModal('linkedin'); return false;"><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+
+                    <!-- Quick Links -->
+                    <div class="footer-column">
+                        <h4>Liens Rapides</h4>
+                        <ul class="footer-links">
+                            <li><a onclick="openModal('about')">À Propos</a></li>
+                            <li><a onclick="openModal('features-detail')">Fonctionnalités</a></li>
+                            <li><a onclick="openModal('pricing')">Tarifs</a></li>
+                            <li><a onclick="openModal('blog')">Blog</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Support -->
+                    <div class="footer-column">
+                        <h4>Support</h4>
+                        <ul class="footer-links">
+                            <li><a onclick="openModal('help')">Centre d'Aide</a></li>
+                            <li><a onclick="openModal('faq')">FAQ</a></li>
+                            <li><a onclick="openModal('contact-modal')">Contact</a></li>
+                            <li><a onclick="openModal('bug')">Signaler un Bug</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Contact -->
+                    <div class="footer-column">
+                        <h4>Contact</h4>
+                        <ul class="footer-links footer-contact">
+                            <li>
+                                <i class="fas fa-envelope"></i>
+                                <a onclick="openModal('email')">contact@wordonline.pro</a>
+                            </li>
+                            <li>
+                                <i class="fas fa-phone"></i>
+                                <a onclick="openModal('phone')">+33 1 23 45 67 89</a>
+                            </li>
+                            <li>
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Paris, France</span>
+                            </li>
+                            <li>
+                                <i class="fab fa-snapchat"></i>
+                                <a href="https://www.snapchat.com/add/h7_06200?share_id=BeFNXfYTQHiQMp2lmxLdUA&locale=fr_FR" target="_blank" rel="noopener noreferrer">Snapchat <i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i></a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="footer-bottom">
+                    <p>© 2026 WordOnline Pro. Tous droits réservés.</p>
+                    <div class="footer-bottom-links">
+                        <a onclick="openModal('privacy')">Politique de Confidentialité</a>
+                        <a onclick="openModal('terms')">Conditions d'Utilisation</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Editor Page -->
+    <div id="editorPage" class="editor-page">
+        <!-- Header -->
+        <div class="editor-header">
+            <div class="editor-header-left">
+                <button class="editor-back-btn" onclick="closeEditor()">
+                    <i class="fas fa-chevron-left"></i>
+                    Retour
+                </button>
+                <div class="editor-title">
+                    <i class="fas fa-file-word"></i>
+                    <input type="text" class="editor-title-input" id="docTitle" value="Document sans titre">
+                </div>
+            </div>
+            <div class="editor-header-right">
+                <button class="editor-btn" onclick="saveDocument()">
+                    <i class="fas fa-save"></i>
+                    Sauvegarder
+                </button>
+                <div class="editor-menu-item">
+                    <button class="editor-btn">
+                        <i class="fas fa-download"></i>
+                        Exporter
+                    </button>
+                    <div class="editor-dropdown">
+                        <div class="editor-dropdown-item" onclick="exportDOCX()">
+                            <i class="fas fa-file-word"></i>
+                            Exporter en .docx
+                        </div>
+                        <div class="editor-dropdown-item" onclick="exportPDF()">
+                            <i class="fas fa-file-pdf"></i>
+                            Exporter en .pdf
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Bar -->
+        <div class="editor-menu-bar">
+            <div class="editor-menu-item">
+                <button class="editor-menu-btn">Fichier</button>
+                <div class="editor-dropdown">
+                    <div class="editor-dropdown-item" onclick="newDocument()">
+                        <i class="fas fa-file"></i>
+                        Nouveau
+                    </div>
+                    <div class="editor-dropdown-item" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-folder-open"></i>
+                        Ouvrir (.docx)
+                    </div>
+                    <div class="editor-dropdown-divider"></div>
+                    <div class="editor-dropdown-item" onclick="saveDocument()">
+                        <i class="fas fa-save"></i>
+                        Sauvegarder
+                    </div>
+                    <div class="editor-dropdown-item" onclick="exportDOCX()">
+                        <i class="fas fa-download"></i>
+                        Enregistrer sous .docx
+                    </div>
+                    <div class="editor-dropdown-item" onclick="exportPDF()">
+                        <i class="fas fa-file-pdf"></i>
+                        Exporter PDF
+                    </div>
+                    <div class="editor-dropdown-divider"></div>
+                    <div class="editor-dropdown-item" onclick="printDocument()">
+                        <i class="fas fa-print"></i>
+                        Imprimer
+                    </div>
+                </div>
+            </div>
+
+            <div class="editor-menu-item">
+                <button class="editor-menu-btn">Accueil</button>
+                <div class="editor-dropdown">
+                    <div class="editor-dropdown-item" onclick="execCmd('cut')">
+                        <i class="fas fa-cut"></i>
+                        Couper
+                    </div>
+                    <div class="editor-dropdown-item" onclick="execCmd('copy')">
+                        <i class="fas fa-copy"></i>
+                        Copier
+                    </div>
+                    <div class="editor-dropdown-item" onclick="execCmd('paste')">
+                        <i class="fas fa-paste"></i>
+                        Coller
+                    </div>
+                    <div class="editor-dropdown-divider"></div>
+                    <div class="editor-dropdown-item" onclick="execCmd('selectAll')">
+                        <i class="fas fa-expand"></i>
+                        Tout sélectionner
+                    </div>
+                </div>
+            </div>
+
+            <div class="editor-menu-item">
+                <button class="editor-menu-btn">Insertion</button>
+                <div class="editor-dropdown">
+                    <div class="editor-dropdown-item" onclick="insertTable()">
+                        <i class="fas fa-table"></i>
+                        Tableau
+                    </div>
+                    <div class="editor-dropdown-item" onclick="insertImage()">
+                        <i class="fas fa-image"></i>
+                        Image
+                    </div>
+                    <div class="editor-dropdown-item" onclick="insertLink()">
+                        <i class="fas fa-link"></i>
+                        Lien hypertexte
+                    </div>
+                    <div class="editor-dropdown-item" onclick="execCmd('insertHorizontalRule')">
+                        <i class="fas fa-minus"></i>
+                        Ligne horizontale
+                    </div>
+                    <div class="editor-dropdown-item" onclick="insertPageBreak()">
+                        <i class="fas fa-minus"></i>
+                        Saut de page
+                    </div>
+                </div>
+            </div>
+
+            <div class="editor-menu-item">
+                <button class="editor-menu-btn">Mise en page</button>
+                <div class="editor-dropdown">
+                    <div class="editor-dropdown-item" onclick="openModal('page-setup')">
+                        <i class="fas fa-cog"></i>
+                        Mise en page
+                    </div>
+                    <div class="editor-dropdown-item" onclick="setLineSpacing(1)">
+                        <i class="fas fa-align-left"></i>
+                        Interligne simple
+                    </div>
+                    <div class="editor-dropdown-item" onclick="setLineSpacing(1.5)">
+                        <i class="fas fa-align-left"></i>
+                        Interligne 1.5
+                    </div>
+                    <div class="editor-dropdown-item" onclick="setLineSpacing(2)">
+                        <i class="fas fa-align-left"></i>
+                        Interligne double
+                    </div>
+                </div>
+            </div>
+
+            <div class="editor-menu-item">
+                <button class="editor-menu-btn">Références</button>
+                <div class="editor-dropdown">
+                    <div class="editor-dropdown-item" onclick="openModal('footnotes')">
+                        <i class="fas fa-superscript"></i>
+                        Notes de bas de page
+                    </div>
+                    <div class="editor-dropdown-item" onclick="openModal('toc')">
+                        <i class="fas fa-book"></i>
+                        Table des matières
+                    </div>
+                </div>
+            </div>
+
+            <div class="editor-menu-item">
+                <button class="editor-menu-btn">Révision</button>
+                <div class="editor-dropdown">
+                    <div class="editor-dropdown-item" onclick="openFindReplace()">
+                        <i class="fas fa-search"></i>
+                        Rechercher et remplacer
+                    </div>
+                    <div class="editor-dropdown-item" onclick="execCmd('removeFormat')">
+                        <i class="fas fa-eraser"></i>
+                        Effacer la mise en forme
+                    </div>
+                </div>
+            </div>
+
+            <div class="editor-menu-item">
+                <button class="editor-menu-btn">Affichage</button>
+                <div class="editor-dropdown">
+                    <div class="editor-dropdown-item" onclick="changeZoom(10)">
+                        <i class="fas fa-search-plus"></i>
+                        Zoom avant
+                    </div>
+                    <div class="editor-dropdown-item" onclick="changeZoom(-10)">
+                        <i class="fas fa-search-minus"></i>
+                        Zoom arrière
+                    </div>
+                    <div class="editor-dropdown-divider"></div>
+                    <div class="editor-dropdown-item" onclick="setZoom(100)">
+                        <i class="fas fa-expand"></i>
+                        Zoom 100%
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="editor-toolbar">
+            <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="execCmd('paste')" title="Coller"><i class="fas fa-paste"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('cut')" title="Couper"><i class="fas fa-cut"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('copy')" title="Copier"><i class="fas fa-copy"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('removeFormat')" title="Effacer la mise en forme"><i class="fas fa-eraser"></i></button>
+            </div>
+
+            <div class="toolbar-group">
+                <select class="toolbar-select" onchange="execCmd('fontName', this.value); this.value=''" style="min-width: 120px;">
+                    <option value="" selected>Police</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Calibri">Calibri</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Helvetica">Helvetica</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="Comic Sans MS">Comic Sans MS</option>
+                </select>
+                <select class="toolbar-select" onchange="execCmd('fontSize', this.value); this.value=''" style="width: 60px;">
+                    <option value="" selected>Taille</option>
+                    <option value="1">8</option>
+                    <option value="2">10</option>
+                    <option value="3">12</option>
+                    <option value="4">14</option>
+                    <option value="5">18</option>
+                    <option value="6">24</option>
+                    <option value="7">36</option>
+                </select>
+            </div>
+
+            <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="execCmd('bold')" title="Gras (Ctrl+B)"><i class="fas fa-bold"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('italic')" title="Italique (Ctrl+I)"><i class="fas fa-italic"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('underline')" title="Souligné (Ctrl+U)"><i class="fas fa-underline"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('strikeThrough')" title="Barré"><i class="fas fa-strikethrough"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('subscript')" title="Indice"><i class="fas fa-subscript"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('superscript')" title="Exposant"><i class="fas fa-superscript"></i></button>
+            </div>
+
+            <div class="toolbar-group">
+                <div class="color-picker">
+                    <button class="toolbar-btn" title="Couleur du texte"><i class="fas fa-font"></i></button>
+                    <div class="color-dropdown" id="textColorDropdown"></div>
+                </div>
+                <div class="color-picker">
+                    <button class="toolbar-btn" title="Surlignage"><i class="fas fa-highlighter"></i></button>
+                    <div class="color-dropdown" id="highlightDropdown"></div>
+                </div>
+            </div>
+
+            <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="execCmd('justifyLeft')" title="Aligner à gauche"><i class="fas fa-align-left"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('justifyCenter')" title="Centrer"><i class="fas fa-align-center"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('justifyRight')" title="Aligner à droite"><i class="fas fa-align-right"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('justifyFull')" title="Justifier"><i class="fas fa-align-justify"></i></button>
+            </div>
+
+            <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="execCmd('insertUnorderedList')" title="Liste à puces"><i class="fas fa-list-ul"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('insertOrderedList')" title="Liste numérotée"><i class="fas fa-list-ol"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('outdent')" title="Diminuer le retrait"><i class="fas fa-outdent"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('indent')" title="Augmenter le retrait"><i class="fas fa-indent"></i></button>
+            </div>
+
+            <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="execCmd('formatBlock', 'H1')" title="Titre 1"><i class="fas fa-heading"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('formatBlock', 'H2')" title="Titre 2"><i class="fas fa-heading" style="font-size: 0.8em;"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('formatBlock', 'H3')" title="Titre 3"><i class="fas fa-heading" style="font-size: 0.6em;"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('formatBlock', 'P')" title="Paragraphe"><i class="fas fa-paragraph"></i></button>
+            </div>
+
+            <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="insertLink()" title="Insérer un lien"><i class="fas fa-link"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('unlink')" title="Supprimer le lien"><i class="fas fa-unlink"></i></button>
+                <button class="toolbar-btn" onclick="insertImage()" title="Insérer une image"><i class="fas fa-image"></i></button>
+                <button class="toolbar-btn" onclick="insertTable()" title="Insérer un tableau"><i class="fas fa-table"></i></button>
+            </div>
+
+            <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="execCmd('undo')" title="Annuler (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+                <button class="toolbar-btn" onclick="execCmd('redo')" title="Rétablir (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+            </div>
+
+            <div class="toolbar-group">
+                <button class="toolbar-btn" onclick="openFindReplace()" title="Rechercher et remplacer"><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+
+        <!-- Workspace -->
+        <div class="editor-workspace">
+            <div class="editor-page-sheet" id="editorPageSheet">
+                <div class="editor-content" id="editor" contenteditable="true">
+                    <p><br></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="editor-status-bar">
+            <div class="status-left">
+                <span>Page <span id="pageCount">1</span> sur <span id="totalPages">1</span></span>
+                <span><span id="wordCount">0</span> mots</span>
+                <span><span id="charCount">0</span> caractères</span>
+            </div>
+            <div class="status-right">
+                <span>Zoom : <span id="zoomLevel">100</span>%</span>
+                <div class="zoom-controls">
+                    <button class="zoom-btn" onclick="changeZoom(-10)"><i class="fas fa-minus"></i></button>
+                    <input type="range" class="zoom-slider" min="50" max="200" value="100" onchange="setZoom(this.value)">
+                    <button class="zoom-btn" onclick="changeZoom(10)"><i class="fas fa-plus"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden File Input -->
+    <input type="file" id="fileInput" class="hidden-input" accept=".docx" onchange="handleFileUpload(event)">
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Titre</h3>
+            </div>
+            <div class="modal-body" id="modalBody">
+                Contenu
+            </div>
+            <div class="modal-footer">
+                <button class="modal-close" onclick="closeModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Find Replace Modal -->
+    <div class="modal-overlay" id="findReplaceModal" onclick="closeFindReplace(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title">Rechercher et remplacer</h3>
+            </div>
+            <div class="modal-body">
+                <div class="find-replace-inputs">
+                    <div>
+                        <label>Rechercher</label>
+                        <input type="text" id="findText" placeholder="Texte à rechercher...">
+                    </div>
+                    <div>
+                        <label>Remplacer par</label>
+                        <input type="text" id="replaceText" placeholder="Nouveau texte...">
+                    </div>
+                </div>
+                <div class="find-replace-actions">
+                    <button class="btn btn-success" onclick="findAndReplace()">
+                        <i class="fas fa-check"></i>
+                        Remplacer tout
+                    </button>
+                    <button class="btn btn-outline" onclick="closeFindReplace()">
+                        <i class="fas fa-times"></i>
+                        Annuler
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ HEADER SCROLL EFFECT ============
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
         });
-    }
 
-    // Événements
-    const trackBtn = document.getElementById('trackBtn');
-    const trackingInput = document.getElementById('trackingInput');
-    trackBtn.addEventListener('click', () => {
-        const code = trackingInput.value.trim();
-        if (code === "") {
-            document.getElementById('infoMessage').innerHTML = '<i class="fas fa-info-circle"></i> Veuillez saisir un numéro de suivi.';
-            return;
+        // ============ MOBILE MENU ============
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const overlay = document.getElementById('overlay');
+            menu.classList.toggle('open');
+            overlay.classList.toggle('active');
         }
-        document.getElementById('infoMessage').innerHTML = '<i class="fas fa-sync-alt"></i> Scraping en cours avec JavaScript...';
-        trackPackage(code);
-    });
-    trackingInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') trackBtn.click(); });
-</script>
+
+        // ============ MODALS DATA ============
+        const modalData = {
+            'login': {
+                title: 'Connexion',
+                body: 'La connexion n\'est pas nécessaire pour utiliser WordOnline Pro. Cliquez sur "Commencer à Éditer" pour commencer immédiatement !'
+            },
+            'demo': {
+                title: 'Démo',
+                body: 'Découvrez toutes les fonctionnalités de notre éditeur en cliquant sur "Commencer à Éditer" !'
+            },
+            'about': {
+                title: 'À Propos',
+                body: 'WordOnline Pro est un éditeur de documents en ligne gratuit, créé pour les étudiants et professionnels qui ont besoin d\'un outil puissant et accessible.'
+            },
+            'features-detail': {
+                title: 'Fonctionnalités',
+                body: 'Notre éditeur inclut : mise en forme complète, styles, tableaux, images, export PDF/DOCX, et bien plus encore !'
+            },
+            'pricing': {
+                title: 'Tarifs',
+                body: 'WordOnline Pro est 100% gratuit pour tous les utilisateurs. Aucune carte de crédit requise !'
+            },
+            'blog': {
+                title: 'Blog',
+                body: 'Notre blog arrive bientôt avec des astuces et tutoriels pour maîtriser l\'édition de documents.'
+            },
+            'help': {
+                title: 'Centre d\'Aide',
+                body: 'Notre centre d\'aide est en construction. En attendant, n\'hésitez pas à nous contacter par email.'
+            },
+            'faq': {
+                title: 'FAQ',
+                body: '<strong>Q: Est-ce gratuit ?</strong><br>R: Oui, 100% gratuit !<br><br><strong>Q: Mes données sont-elles sécurisées ?</strong><br>R: Oui, tout reste sur votre appareil.'
+            },
+            'contact-modal': {
+                title: 'Contact',
+                body: 'Contactez-nous à contact@wordonline.pro ou via Snapchat.'
+            },
+            'bug': {
+                title: 'Signaler un Bug',
+                body: 'Merci de nous aider à améliorer ! Envoyez-nous un email à contact@wordonline.pro avec les détails du bug.'
+            },
+            'email': {
+                title: 'Email',
+                body: 'Notre email : contact@wordonline.pro'
+            },
+            'phone': {
+                title: 'Téléphone',
+                body: 'Notre téléphone : +33 1 23 45 67 89'
+            },
+            'privacy': {
+                title: 'Politique de Confidentialité',
+                body: 'Nous respectons votre vie privée. Aucune donnée n\'est stockée sur nos serveurs - tout reste sur votre appareil.'
+            },
+            'terms': {
+                title: 'Conditions d\'Utilisation',
+                body: 'En utilisant WordOnline Pro, vous acceptez nos conditions d\'utilisation. L\'outil est fourni tel quel, sans garantie.'
+            },
+            'facebook': {
+                title: 'Facebook',
+                body: 'Suivez-nous sur Facebook pour les dernières actualités !'
+            },
+            'twitter': {
+                title: 'Twitter',
+                body: 'Suivez-nous sur Twitter pour les mises à jour !'
+            },
+            'instagram': {
+                title: 'Instagram',
+                body: 'Suivez-nous sur Instagram pour des astuces visuelles !'
+            },
+            'linkedin': {
+                title: 'LinkedIn',
+                body: 'Connectez-vous avec nous sur LinkedIn !'
+            },
+            'footnotes': {
+                title: 'Notes de bas de page',
+                body: 'Cette fonctionnalité sera disponible dans une prochaine mise à jour.'
+            },
+            'toc': {
+                title: 'Table des matières',
+                body: 'La table des matières sera générée automatiquement à partir de vos titres dans une prochaine mise à jour.'
+            },
+            'page-setup': {
+                title: 'Mise en page',
+                body: 'Options de mise en page : orientation (portrait/paysage), marges, et format de page. Fonctionnalité complète à venir !'
+            }
+        };
+
+        function openModal(modalId) {
+            const data = modalData[modalId];
+            if (data) {
+                document.getElementById('modalTitle').textContent = data.title;
+                document.getElementById('modalBody').innerHTML = data.body;
+                document.getElementById('modalOverlay').classList.add('active');
+            }
+        }
+
+        function closeModal(event) {
+            if (!event || event.target === document.getElementById('modalOverlay')) {
+                document.getElementById('modalOverlay').classList.remove('active');
+            }
+        }
+
+        // ============ EDITOR FUNCTIONS ============
+        let currentZoom = 100;
+
+        function openEditor() {
+            document.getElementById('homePage').style.display = 'none';
+            document.getElementById('editorPage').classList.add('active');
+            document.getElementById('editor').focus();
+            updateCounts();
+        }
+
+        function closeEditor() {
+            document.getElementById('editorPage').classList.remove('active');
+            document.getElementById('homePage').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function execCmd(command, value = null) {
+            document.execCommand(command, false, value);
+            document.getElementById('editor').focus();
+            updateCounts();
+        }
+
+        function updateCounts() {
+            const editor = document.getElementById('editor');
+            const text = editor.innerText || '';
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const chars = text.length;
+            const pages = Math.max(1, Math.ceil(chars / 3000));
+
+            document.getElementById('wordCount').textContent = words;
+            document.getElementById('charCount').textContent = chars;
+            document.getElementById('pageCount').textContent = pages;
+            document.getElementById('totalPages').textContent = pages;
+        }
+
+        document.getElementById('editor').addEventListener('input', updateCounts);
+        document.getElementById('editor').addEventListener('keyup', updateCounts);
+        document.getElementById('editor').addEventListener('mouseup', updateCounts);
+
+        function changeZoom(delta) {
+            setZoom(currentZoom + delta);
+        }
+
+        function setZoom(value) {
+            currentZoom = Math.max(50, Math.min(200, parseInt(value)));
+            document.getElementById('editorPageSheet').style.transform = `scale(${currentZoom / 100})`;
+            document.getElementById('editorPageSheet').style.transformOrigin = 'top center';
+            document.getElementById('zoomLevel').textContent = currentZoom;
+            document.querySelector('.zoom-slider').value = currentZoom;
+        }
+
+        function insertTable() {
+            const rows = parseInt(prompt('Nombre de lignes :', '3') || '3');
+            const cols = parseInt(prompt('Nombre de colonnes :', '3') || '3');
+            
+            let tableHTML = '<table style="border-collapse: collapse; width: 100%; margin: 10px 0;">';
+            for (let i = 0; i < rows; i++) {
+                tableHTML += '<tr>';
+                for (let j = 0; j < cols; j++) {
+                    tableHTML += '<td style="border: 1px solid #ccc; padding: 8px;">Cellule</td>';
+                }
+                tableHTML += '</tr>';
+            }
+            tableHTML += '</table><br>';
+            
+            execCmd('insertHTML', tableHTML);
+        }
+
+        function insertImage() {
+            const url = prompt('Entrez l\'URL de l\'image :');
+            if (url) {
+                execCmd('insertImage', url);
+            }
+        }
+
+        function insertLink() {
+            const url = prompt('Entrez l\'URL du lien :');
+            if (url) {
+                execCmd('createLink', url);
+            }
+        }
+
+        function insertPageBreak() {
+            execCmd('insertHTML', '<div style="page-break-after: always;"></div><p><br></p>');
+            showToast('Saut de page inséré', 'success');
+        }
+
+        function setLineSpacing(value) {
+            document.getElementById('editor').style.lineHeight = value;
+            showToast(`Interligne défini sur ${value}`, 'success');
+        }
+
+        function newDocument() {
+            if (confirm('Voulez-vous créer un nouveau document ? Les modifications non sauvegardées seront perdues.')) {
+                document.getElementById('editor').innerHTML = '<p><br></p>';
+                document.getElementById('docTitle').value = 'Document sans titre';
+                updateCounts();
+                showToast('Nouveau document créé', 'success');
+            }
+        }
+
+        function saveDocument() {
+            const content = document.getElementById('editor').innerHTML;
+            const title = document.getElementById('docTitle').value;
+            const blob = new Blob([content], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${title}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Document sauvegardé !', 'success');
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.name.endsWith('.docx')) {
+                showToast('Import du document en cours...', 'info');
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const text = e.target.result;
+                    const textMatches = text.match(/<w:t[^>]*>([^<]*)<\/w:t>/g);
+                    if (textMatches) {
+                        const extractedText = textMatches
+                            .map(match => match.replace(/<w:t[^>]*>|<\/w:t>/g, ''))
+                            .join(' ');
+                        const paragraphs = extractedText.split(/\n\n|\r\n\r\n/).map(p => `<p>${p}</p>`).join('');
+                        document.getElementById('editor').innerHTML = paragraphs || '<p><br></p>';
+                    } else {
+                        document.getElementById('editor').innerHTML = '<p>Le document a été importé. Le contenu peut nécessiter une mise en forme.</p>';
+                    }
+                    document.getElementById('docTitle').value = file.name.replace('.docx', '');
+                    updateCounts();
+                    showToast('Document importé avec succès !', 'success');
+                };
+                reader.readAsText(file);
+            } else {
+                showToast('Veuillez sélectionner un fichier .docx', 'error');
+            }
+            
+            event.target.value = '';
+        }
+
+        async function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const editor = document.getElementById('editor');
+            
+            showToast('Génération du PDF en cours...', 'info');
+            
+            try {
+                const canvas = await html2canvas(editor, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                });
+                
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth * ratio, imgHeight * ratio);
+                pdf.save(`${document.getElementById('docTitle').value}.pdf`);
+                
+                showToast('PDF téléchargé avec succès !', 'success');
+            } catch (error) {
+                showToast('Erreur lors de la génération du PDF', 'error');
+                console.error(error);
+            }
+        }
+
+        function exportDOCX() {
+            showToast('Génération du DOCX en cours...', 'info');
+            
+            const content = document.getElementById('editor').innerHTML;
+            const blob = new Blob([`
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>Document</title></head>
+                <body>${content}</body>
+                </html>
+            `], { type: 'application/msword' });
+            
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${document.getElementById('docTitle').value}.docx`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            showToast('Document DOCX téléchargé !', 'success');
+        }
+
+        function printDocument() {
+            const printWindow = window.open('', '_blank');
+            const title = document.getElementById('docTitle').value;
+            const content = document.getElementById('editor').innerHTML;
+            
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>${title}</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; margin: 2cm; }
+                            @media print { body { margin: 0; } }
+                        </style>
+                    </head>
+                    <body>${content}</body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function openFindReplace() {
+            document.getElementById('findReplaceModal').classList.add('active');
+        }
+
+        function closeFindReplace(event) {
+            if (!event || event.target === document.getElementById('findReplaceModal')) {
+                document.getElementById('findReplaceModal').classList.remove('active');
+            }
+        }
+
+        function findAndReplace() {
+            const findText = document.getElementById('findText').value;
+            const replaceText = document.getElementById('replaceText').value;
+            
+            if (!findText) {
+                showToast('Veuillez entrer un texte à rechercher', 'error');
+                return;
+            }
+            
+            const editor = document.getElementById('editor');
+            const content = editor.innerHTML;
+            const newContent = content.replace(new RegExp(findText, 'gi'), replaceText);
+            editor.innerHTML = newContent;
+            
+            showToast(`Remplacement effectué : "${findText}" → "${replaceText}"`, 'success');
+            closeFindReplace();
+            updateCounts();
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                info: 'fa-info-circle'
+            };
+            
+            toast.innerHTML = `
+                <i class="fas ${icons[type]}"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        const colors = [
+            '#000000', '#434343', '#666666', '#999999', '#b7b7b7', '#cccccc', '#d9d9d9', '#efefef', '#f3f3f3', '#ffffff',
+            '#980000', '#ff0000', '#ff9900', '#ffff00', '#00ff00', '#00ffff', '#4a86e8', '#0000ff', '#9900ff', '#ff00ff',
+            '#e6b8af', '#f4cccc', '#fce5cd', '#fff2cc', '#d9ead3', '#d0e0e3', '#c9daf8', '#cfe2f3', '#d9d2e9', '#ead1dc',
+        ];
+
+        function createColorDropdown(dropdownId, command) {
+            const dropdown = document.getElementById(dropdownId);
+            colors.forEach(color => {
+                const div = document.createElement('div');
+                div.className = 'color-option';
+                div.style.backgroundColor = color;
+                div.onclick = () => {
+                    execCmd(command, color);
+                };
+                dropdown.appendChild(div);
+            });
+        }
+
+        createColorDropdown('textColorDropdown', 'foreColor');
+        createColorDropdown('highlightDropdown', 'hiliteColor');
+
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'b':
+                        e.preventDefault();
+                        execCmd('bold');
+                        break;
+                    case 'i':
+                        e.preventDefault();
+                        execCmd('italic');
+                        break;
+                    case 'u':
+                        e.preventDefault();
+                        execCmd('underline');
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        saveDocument();
+                        break;
+                    case 'p':
+                        e.preventDefault();
+                        printDocument();
+                        break;
+                }
+            }
+        });
+
+        updateCounts();
+    </script>
 </body>
 </html>
