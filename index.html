@@ -924,6 +924,8 @@
             display: flex;
             gap: 1.5rem;
             overflow-x: auto;
+            position: relative;
+            z-index: 100;
         }
 
         .editor-menu-item {
@@ -955,8 +957,8 @@
             border: 1px solid #e5e7eb;
             border-radius: 8px;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            min-width: 200px;
-            z-index: 100;
+            min-width: 220px;
+            z-index: 1000;
         }
 
         .editor-menu-item:hover .editor-dropdown {
@@ -991,6 +993,8 @@
             flex-wrap: wrap;
             gap: 0.25rem;
             align-items: center;
+            position: relative;
+            z-index: 50;
         }
 
         .toolbar-group {
@@ -1057,7 +1061,7 @@
             border-radius: 8px;
             padding: 0.5rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            z-index: 100;
+            z-index: 200;
             grid-template-columns: repeat(10, 1fr);
             gap: 4px;
         }
@@ -1146,6 +1150,11 @@
         .editor-content td, .editor-content th {
             border: 1px solid #d1d5db;
             padding: 8px;
+        }
+
+        .editor-content img {
+            max-width: 100%;
+            height: auto;
         }
 
         .editor-status-bar {
@@ -1837,7 +1846,11 @@
                     </div>
                     <div class="editor-dropdown-item" onclick="insertImage()">
                         <i class="fas fa-image"></i>
-                        Image
+                        Image par URL
+                    </div>
+                    <div class="editor-dropdown-item" onclick="document.getElementById('imageInput').click()">
+                        <i class="fas fa-upload"></i>
+                        Importer une image
                     </div>
                     <div class="editor-dropdown-item" onclick="insertLink()">
                         <i class="fas fa-link"></i>
@@ -1848,7 +1861,7 @@
                         Ligne horizontale
                     </div>
                     <div class="editor-dropdown-item" onclick="insertPageBreak()">
-                        <i class="fas fa-minus"></i>
+                        <i class="fas fa-page-break"></i>
                         Saut de page
                     </div>
                 </div>
@@ -2001,7 +2014,8 @@
             <div class="toolbar-group">
                 <button class="toolbar-btn" onclick="insertLink()" title="Insérer un lien"><i class="fas fa-link"></i></button>
                 <button class="toolbar-btn" onclick="execCmd('unlink')" title="Supprimer le lien"><i class="fas fa-unlink"></i></button>
-                <button class="toolbar-btn" onclick="insertImage()" title="Insérer une image"><i class="fas fa-image"></i></button>
+                <button class="toolbar-btn" onclick="insertImage()" title="Insérer une image URL"><i class="fas fa-image"></i></button>
+                <button class="toolbar-btn" onclick="document.getElementById('imageInput').click()" title="Importer une image"><i class="fas fa-upload"></i></button>
                 <button class="toolbar-btn" onclick="insertTable()" title="Insérer un tableau"><i class="fas fa-table"></i></button>
             </div>
 
@@ -2042,8 +2056,9 @@
         </div>
     </div>
 
-    <!-- Hidden File Input -->
+    <!-- Hidden File Inputs -->
     <input type="file" id="fileInput" class="hidden-input" accept=".docx" onchange="handleFileUpload(event)">
+    <input type="file" id="imageInput" class="hidden-input" accept="image/*" onchange="handleImageUpload(event)">
 
     <!-- Modals -->
     <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
@@ -2284,8 +2299,29 @@
         function insertImage() {
             const url = prompt('Entrez l\'URL de l\'image :');
             if (url) {
-                execCmd('insertImage', url);
+                const imgHTML = `<img src="${url}" style="max-width: 100%; height: auto; margin: 10px 0;" /><br>`;
+                execCmd('insertHTML', imgHTML);
+                showToast('Image insérée !', 'success');
             }
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgHTML = `<img src="${e.target.result}" style="max-width: 100%; height: auto; margin: 10px 0;" /><br>`;
+                    execCmd('insertHTML', imgHTML);
+                    showToast('Image importée avec succès !', 'success');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                showToast('Veuillez sélectionner une image', 'error');
+            }
+            
+            event.target.value = '';
         }
 
         function insertLink() {
@@ -2336,20 +2372,42 @@
                 
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const text = e.target.result;
-                    const textMatches = text.match(/<w:t[^>]*>([^<]*)<\/w:t>/g);
-                    if (textMatches) {
-                        const extractedText = textMatches
-                            .map(match => match.replace(/<w:t[^>]*>|<\/w:t>/g, ''))
-                            .join(' ');
-                        const paragraphs = extractedText.split(/\n\n|\r\n\r\n/).map(p => `<p>${p}</p>`).join('');
-                        document.getElementById('editor').innerHTML = paragraphs || '<p><br></p>';
-                    } else {
+                    try {
+                        const text = e.target.result;
+                        
+                        // Try to extract text from the DOCX XML structure
+                        let extractedText = '';
+                        
+                        // Remove XML tags and extract text content
+                        const textContent = text.replace(/<[^>]+>/g, ' ');
+                        
+                        // Clean up extra spaces
+                        extractedText = textContent.replace(/\s+/g, ' ').trim();
+                        
+                        if (extractedText.length > 0) {
+                            // Split into paragraphs
+                            const paragraphs = extractedText.split(/\. (?=[A-Z])|\n+/).filter(p => p.trim().length > 0);
+                            
+                            if (paragraphs.length > 0) {
+                                const htmlContent = paragraphs.map(p => `<p>${p.trim()}.</p>`).join('');
+                                document.getElementById('editor').innerHTML = htmlContent;
+                            } else {
+                                document.getElementById('editor').innerHTML = `<p>${extractedText}</p>`;
+                            }
+                        } else {
+                            document.getElementById('editor').innerHTML = '<p>Le document a été importé. Le contenu peut nécessiter une mise en forme.</p>';
+                        }
+                        
+                        document.getElementById('docTitle').value = file.name.replace('.docx', '');
+                        updateCounts();
+                        showToast('Document importé avec succès !', 'success');
+                    } catch (error) {
+                        console.error('Error parsing DOCX:', error);
                         document.getElementById('editor').innerHTML = '<p>Le document a été importé. Le contenu peut nécessiter une mise en forme.</p>';
+                        document.getElementById('docTitle').value = file.name.replace('.docx', '');
+                        updateCounts();
+                        showToast('Document importé (mise en forme à vérifier)', 'info');
                     }
-                    document.getElementById('docTitle').value = file.name.replace('.docx', '');
-                    updateCounts();
-                    showToast('Document importé avec succès !', 'success');
                 };
                 reader.readAsText(file);
             } else {
@@ -2423,6 +2481,7 @@
                         <style>
                             body { font-family: Arial, sans-serif; margin: 2cm; }
                             @media print { body { margin: 0; } }
+                            img { max-width: 100%; height: auto; }
                         </style>
                     </head>
                     <body>${content}</body>
